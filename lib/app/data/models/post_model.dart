@@ -1,21 +1,37 @@
-class Post {
+class PostModel {
+  final int id;
+  final String userId;
   final String description;
-  final String uid;
-  final String username;
-  final likes;
-  final String postId;
-  final DateTime datePublished;
-  final String postUrl;
-  final String profImage;
+  final String? imageUrl;
+  final DateTime createdAt;
+  final int likeCount;
+  final int commentCount;
+  final String? username;
+  final String? profileImageUrl;
 
-  const Post({
+  PostModel({
+    required this.id,
+    required this.userId,
     required this.description,
-    required this.uid,
-    required this.username,
-    required this.likes,
-    required this.postId,
-    required this.datePublished,
-    required this.postUrl,
-    required this.profImage,
+    this.imageUrl,
+    required this.createdAt,
+    required this.likeCount,
+    required this.commentCount,
+    this.username,
+    this.profileImageUrl,
   });
+
+  factory PostModel.fromJson(Map<String, dynamic> json) {
+    return PostModel(
+      id: json['id'],
+      userId: json['user_id'],
+      description: json['description'],
+      imageUrl: json['image_url'],
+      createdAt: DateTime.parse(json['created_at']),
+      likeCount: json['like_count'] ?? 0,
+      commentCount: json['comment_count'] ?? 0,
+      username: json['profiles']?['username'],
+      profileImageUrl: json['profiles']?['profile_image_url'],
+    );
+  }
 }
