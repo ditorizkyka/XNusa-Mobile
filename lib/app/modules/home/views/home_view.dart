@@ -8,7 +8,7 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    final authC = Get.find<AuthController>();
+    Get.lazyPut(() => HomeController());
     final TextEditingController postController = TextEditingController();
 
     return Scaffold(

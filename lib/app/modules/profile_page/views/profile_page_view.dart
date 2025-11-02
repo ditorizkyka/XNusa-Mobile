@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:xnusa_mobile/app/modules/auth/controllers/auth_controller.dart';
 import '../controllers/profile_page_controller.dart';
 
 class ProfilePageView extends GetView<ProfilePageController> {
@@ -7,6 +8,8 @@ class ProfilePageView extends GetView<ProfilePageController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.lazyPut(() => ProfilePageController());
+    final authC = Get.put(AuthController());
     return Scaffold(
       appBar: AppBar(title: const Text('My Profile'), centerTitle: true),
       body: Obx(() {
@@ -15,9 +18,6 @@ class ProfilePageView extends GetView<ProfilePageController> {
         }
 
         final data = controller.profileData;
-        if (data.isEmpty) {
-          return const Center(child: Text('No profile data found.'));
-        }
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -86,8 +86,8 @@ class ProfilePageView extends GetView<ProfilePageController> {
               // Tombol logout
               ElevatedButton.icon(
                 onPressed: () async {
-                  await controller.supabase.auth.signOut();
-                  Get.offAllNamed('/login');
+                  await authC.signOut();
+                  Get.offAllNamed('/signin');
                 },
                 icon: const Icon(Icons.logout),
                 label: const Text('Logout'),

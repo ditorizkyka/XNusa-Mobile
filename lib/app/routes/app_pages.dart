@@ -3,6 +3,10 @@ import 'package:get/get.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/signin_page.dart';
 import '../modules/auth/views/signup_page.dart';
+import '../modules/dashboard/bindings/dashboard_binding.dart';
+import '../modules/dashboard/views/dashboard_view.dart';
+import '../modules/explore_page/bindings/explore_page_binding.dart';
+import '../modules/explore_page/views/explore_page_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/profile_page/bindings/profile_page_binding.dart';
@@ -35,6 +39,16 @@ class AppPages {
       name: _Paths.PROFILE_PAGE,
       page: () => const ProfilePageView(),
       binding: ProfilePageBinding(),
+    ),
+    GetPage(
+      name: _Paths.EXPLORE_PAGE,
+      page: () => const ExplorePageView(),
+      binding: ExplorePageBinding(),
+    ),
+    GetPage(
+      name: _Paths.DASHBOARD,
+      page: () => const DashboardView(),
+      binding: DashboardBinding(),
     ),
   ];
 }
