@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:xnusa_mobile/app/modules/auth/views/signin_page.dart';
+import 'package:xnusa_mobile/constant/constant.dart';
+import 'package:xnusa_mobile/widgets/input_field.dart';
 import '../controllers/auth_controller.dart';
 
 class SignupPage extends GetView<AuthController> {
@@ -8,6 +11,7 @@ class SignupPage extends GetView<AuthController> {
   // Controller text field
   final emailC = TextEditingController();
   final passC = TextEditingController();
+  final confirmPassC = TextEditingController();
   final usernameC = TextEditingController();
   final displayNameC = TextEditingController();
 
@@ -16,106 +20,209 @@ class SignupPage extends GetView<AuthController> {
     final c = Get.find<AuthController>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up'), centerTitle: true),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              Text(
-                "Create Your Account",
-                style: Theme.of(context).textTheme.headlineSmall,
+      backgroundColor: ColorApp.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(SizeApp.w20),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight:
+                    MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    (SizeApp.w20 * 2),
               ),
-              const SizedBox(height: 20),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Gap.h32,
+                    Image.asset(
+                      'assets/logo/square-xn.png',
+                      height: 80,
+                      width: 80,
+                    ),
+                    Gap.h24,
+                    Text("Sign Up", style: TypographyApp.headline1),
+                    Gap.h32,
 
-              // Username
-              TextField(
-                controller: usernameC,
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-              ),
-              const SizedBox(height: 12),
+                    InputField(
+                      labelInput: "Email",
+                      hintInput: "rhenofebrian@gmail.com",
+                      isPassword: false,
+                      controller: emailC,
+                    ),
 
-              // Display name
-              TextField(
-                controller: displayNameC,
-                decoration: const InputDecoration(
-                  labelText: 'Display Name',
-                  prefixIcon: Icon(Icons.badge_outlined),
-                ),
-              ),
-              const SizedBox(height: 12),
+                    Gap.h8,
+                    InputField(
+                      labelInput: "Create Password",
+                      hintInput: "must be at least 8 characters",
+                      isPassword: true,
+                      controller: passC,
+                    ),
+                    Gap.h8,
+                    InputField(
+                      labelInput: "Confirm Password",
+                      hintInput: "repeat your password",
+                      isPassword: true,
+                      controller: confirmPassC,
+                    ),
+                    Gap.h8,
+                    InputField(
+                      labelInput: "Username",
+                      hintInput: "create an unique username!",
+                      isPassword: false,
+                      controller: usernameC,
+                    ),
+                    Gap.h8,
+                    InputField(
+                      labelInput: "Display Name",
+                      hintInput: "your full name",
+                      isPassword: false,
+                      controller: displayNameC,
+                    ),
 
-              // Email
-              TextField(
-                controller: emailC,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
-                ),
-              ),
-              const SizedBox(height: 12),
+                    Gap.h16,
+                    Obx(
+                      () =>
+                          c.isLoading.value
+                              ? Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: SizeApp.h12,
+                                ),
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: ColorApp.primary,
+                                  borderRadius: BorderRadius.circular(
+                                    SizeApp.h8,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              : GestureDetector(
+                                onTap: () async {
+                                  final email = emailC.text.trim();
+                                  final pass = passC.text.trim();
+                                  final username = usernameC.text.trim();
+                                  final displayName = displayNameC.text.trim();
 
-              // Password
-              TextField(
-                controller: passC,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outline),
-                ),
-              ),
-              const SizedBox(height: 24),
+                                  if (email.isEmpty ||
+                                      pass.isEmpty ||
+                                      username.isEmpty ||
+                                      displayName.isEmpty) {
+                                    Get.snackbar(
+                                      'Error',
+                                      'Please fill in all fields',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                    );
+                                    return;
+                                  }
 
-              // Register button
-              Obx(
-                () =>
-                    c.isLoading.value
-                        ? const CircularProgressIndicator()
-                        : SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final email = emailC.text.trim();
-                              final pass = passC.text.trim();
-                              final username = usernameC.text.trim();
-                              final displayName = displayNameC.text.trim();
+                                  if (pass != confirmPassC.text.trim()) {
+                                    Get.snackbar(
+                                      'Error',
+                                      'Passwords do not match',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                    );
+                                    return;
+                                  }
 
-                              if (email.isEmpty ||
-                                  pass.isEmpty ||
-                                  username.isEmpty ||
-                                  displayName.isEmpty) {
-                                Get.snackbar(
-                                  'Error',
-                                  'Semua field harus diisi',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                );
-                                return;
-                              }
+                                  await c.signUp(
+                                    email: email,
+                                    password: pass,
+                                    displayName: displayName,
+                                    username: username,
+                                  );
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: SizeApp.h12,
+                                  ),
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: ColorApp.primary,
+                                    borderRadius: BorderRadius.circular(
+                                      SizeApp.h8,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Sign Up",
+                                      style: TypographyApp.textLight,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                    ),
 
-                              await c.signUp(
-                                email: email,
-                                password: pass,
-                                displayName: displayName,
-                                username: username,
-                              );
-                            },
-                            child: const Text('Register'),
+                    Gap.h24,
+                    // Garis dan teks "Or Login with"
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            thickness: 1,
+                            color: Colors.grey.shade300,
                           ),
                         ),
-              ),
-              const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            "Or Login with",
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                              color: ColorApp.grey,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            thickness: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Gap.h16,
 
-              // Back to login
-              TextButton(
-                onPressed: () => Get.back(),
-                child: const Text('Back to Login'),
+                    // Tombol social media
+                    SocialMediaOptionAuth(),
+
+                    Gap.h52,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Already have an account? ",
+                          style: TypographyApp.label,
+                        ),
+                        GestureDetector(
+                          onTap: () => Get.offNamed('/signin'),
+                          child: Text(
+                            "Sign In",
+                            style: TypographyApp.label.copyWith(
+                              color: ColorApp.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),

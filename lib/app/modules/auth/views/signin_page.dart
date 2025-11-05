@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:get/get.dart';
+import 'package:xnusa_mobile/constant/constant.dart';
+import 'package:xnusa_mobile/widgets/input_field.dart';
 
 import '../controllers/auth_controller.dart';
 
@@ -14,40 +17,252 @@ class SigninPage extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('AuthView'), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: emailC,
-                decoration: InputDecoration(labelText: 'Email'),
+      backgroundColor: ColorApp.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(SizeApp.w20),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight:
+                    MediaQuery.of(context).size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom -
+                    (SizeApp.w20 * 2),
               ),
-              TextField(
-                controller: passC,
-                obscureText: true,
-                decoration: InputDecoration(labelText: 'Password'),
-              ),
-              const SizedBox(height: 20),
-              Obx(
-                () =>
-                    c.isLoading.value
-                        ? CircularProgressIndicator()
-                        : ElevatedButton(
-                          onPressed: () => c.signIn(emailC.text, passC.text),
-                          child: Text('Sign In'),
+              child: IntrinsicHeight(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Gap.h32,
+                    Image.asset(
+                      'assets/logo/square-xn.png',
+                      height: 80,
+                      width: 80,
+                    ),
+                    Gap.h24,
+                    Text("Sign In", style: TypographyApp.headline1),
+                    Gap.h32,
+
+                    InputField(
+                      labelInput: "Email",
+                      hintInput: "rhenofebrian@gmail.com",
+                      isPassword: false,
+                      controller: emailC,
+                    ),
+
+                    Gap.h8,
+                    InputField(
+                      labelInput: "Password",
+                      hintInput: "*******",
+                      isPassword: true,
+                      controller: passC,
+                    ),
+
+                    Gap.h4,
+                    GestureDetector(
+                      onTap: () {
+                        print("Forgot Password");
+                      },
+                      child: Text(
+                        "Forgot Password?",
+                        style: TypographyApp.label.copyWith(
+                          color: ColorApp.primary,
                         ),
+                      ),
+                    ),
+
+                    Gap.h16,
+                    Obx(
+                      () =>
+                          c.isLoading.value
+                              ? Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: SizeApp.h12,
+                                ),
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: ColorApp.primary,
+                                  borderRadius: BorderRadius.circular(
+                                    SizeApp.h8,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              : GestureDetector(
+                                onTap: () => c.signIn(emailC.text, passC.text),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: SizeApp.h12,
+                                  ),
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: ColorApp.primary,
+                                    borderRadius: BorderRadius.circular(
+                                      SizeApp.h8,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Sign In",
+                                      style: TypographyApp.textLight,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                    ),
+                    Gap.h24,
+                    // Garis dan teks "Or Login with"
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            thickness: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            "Or Login with",
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500,
+                              color: ColorApp.grey,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            thickness: 1,
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Tombol social media
+                    SocialMediaOptionAuth(),
+
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Don't have an account? ",
+                          style: TypographyApp.label,
+                        ),
+                        GestureDetector(
+                          onTap: () => Get.offNamed('/signup'),
+                          child: Text(
+                            "Sign Up",
+                            style: TypographyApp.label.copyWith(
+                              color: ColorApp.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              TextButton(
-                onPressed: () => Get.toNamed('/signup'),
-                child: Text('Create Account'),
-              ),
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class SocialMediaOptionAuth extends StatelessWidget {
+  const SocialMediaOptionAuth({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        InkWell(
+          onTap: () {
+            print("Login with Facebook");
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            width: 80,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Center(
+              child: Icon(
+                FontAwesomeIcons.facebookF,
+                color: Colors.blue,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 16),
+        InkWell(
+          onTap: () {
+            print("Login with Google");
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            width: 80,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Center(
+              child: Icon(FontAwesomeIcons.google, color: Colors.red, size: 20),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 16),
+        InkWell(
+          onTap: () {
+            print("Login with Apple");
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            width: 80,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Center(
+              child: Icon(
+                FontAwesomeIcons.apple,
+                color: Colors.black,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
