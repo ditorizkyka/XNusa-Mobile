@@ -9,8 +9,12 @@ import '../modules/explore_page/bindings/explore_page_binding.dart';
 import '../modules/explore_page/views/explore_page_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
+import '../modules/message_page/bindings/message_page_binding.dart';
+import '../modules/message_page/views/message_page_view.dart';
 import '../modules/profile_page/bindings/profile_page_binding.dart';
 import '../modules/profile_page/views/profile_page_view.dart';
+import '../modules/search_page/bindings/search_page_binding.dart';
+import '../modules/search_page/views/search_page_view.dart';
 
 part 'app_routes.dart';
 
@@ -49,6 +53,16 @@ class AppPages {
       name: _Paths.DASHBOARD,
       page: () => const DashboardView(),
       binding: DashboardBinding(),
+    ),
+    GetPage(
+      name: _Paths.SEARCH_PAGE,
+      page: () => const SearchPageView(),
+      binding: SearchPageBinding(),
+    ),
+    GetPage(
+      name: _Paths.MESSAGE_PAGE,
+      page: () => const MessagePageView(),
+      binding: MessagePageBinding(),
     ),
   ];
 }
