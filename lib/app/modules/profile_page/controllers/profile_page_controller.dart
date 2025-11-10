@@ -2,10 +2,13 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:xnusa_mobile/app/data/models/post_model.dart';
 
 class ProfilePageController extends GetxController {
   final supabase = Supabase.instance.client;
   var profileData = {}.obs;
+  var userPosts = <PostModel>[].obs; // post milik user login
+  var userReplies = <PostModel>[].obs;
   var isLoading = false.obs;
 
   // Ambil data profil user dari Supabase
@@ -21,6 +24,42 @@ class ProfilePageController extends GetxController {
       profileData.value = res;
     } catch (e) {
       Get.snackbar('Error', e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchPostUser() async {
+    try {
+      isLoading.value = true;
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      // Fetch semua post milik user login
+      final postsResponse = await supabase
+          .from('posts')
+          .select('*, profiles(username, profile_image_url)')
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false);
+
+      userPosts.value =
+          (postsResponse as List).map((p) => PostModel.fromJson(p)).toList();
+
+      print("DISINI USER POSTS: ${userPosts.length}");
+
+      // Fetch semua replies milik user login
+      final repliesResponse = await supabase
+          .from('replies')
+          .select(
+            '*, profiles(username, profile_image_url), posts(description)',
+          )
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false);
+
+      userReplies.value =
+          (repliesResponse as List).map((r) => PostModel.fromJson(r)).toList();
+    } catch (e) {
+      print("Error fetchUserContent: $e");
     } finally {
       isLoading.value = false;
     }
@@ -64,9 +103,16 @@ class ProfilePageController extends GetxController {
     }
   }
 
+  // Jalankan saat inisialisasi controller
   @override
   void onInit() {
-    fetchProfile();
     super.onInit();
+    loadAllContent();
+  }
+
+  // Fungsi gabungan agar urutannya jelas
+  Future<void> loadAllContent() async {
+    await fetchProfile();
+    await fetchPostUser();
   }
 }

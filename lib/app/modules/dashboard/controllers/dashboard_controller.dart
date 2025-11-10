@@ -15,15 +15,7 @@ class DashboardController extends GetxController {
     selectedIndex.value = index;
   }
 
-  // void dataUser(User userFirebase) async {
-  //   await _firestore.collection('users').doc(userFirebase.uid).get().then((
-  //     value,
-  //   ) {
-  //     print(value.exists);
-  //     user.name = value['name'];
-  //     user.cost = value['cost'];
-  //   });
-  //   user.email = userFirebase.email!;
-  //   user.uid = userFirebase.uid;
-  // }
+  // Fetch profiles user + post users + replies users
+
+  // void dataUser(User userFirebase) async {}
 }

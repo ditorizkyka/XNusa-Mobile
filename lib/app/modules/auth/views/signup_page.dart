@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:xnusa_mobile/app/modules/auth/views/signin_page.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
+import 'package:xnusa_mobile/widgets/button_app_filled_expanded.dart';
 import 'package:xnusa_mobile/widgets/input_field.dart';
 import '../controllers/auth_controller.dart';
 
@@ -109,7 +110,7 @@ class SignupPage extends GetView<AuthController> {
                                   ),
                                 ),
                               )
-                              : GestureDetector(
+                              : ButtonAppFilledExpanded(
                                 onTap: () async {
                                   final email = emailC.text.trim();
                                   final pass = passC.text.trim();
@@ -144,24 +145,7 @@ class SignupPage extends GetView<AuthController> {
                                     username: username,
                                   );
                                 },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: SizeApp.h12,
-                                  ),
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: ColorApp.primary,
-                                    borderRadius: BorderRadius.circular(
-                                      SizeApp.h8,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "Sign Up",
-                                      style: TypographyApp.textLight,
-                                    ),
-                                  ),
-                                ),
+                                title: "Sign Up",
                               ),
                     ),
 
