@@ -85,7 +85,7 @@ class DashboardView extends GetView<DashboardController> {
                             "Search",
                             1,
                             dashboardController,
-                            onTap: () => print("🔍 Di Page Search"),
+                            onTap: () => authSearch.searchResults.clear(),
                           ),
                           const SizedBox(
                             width: 60,

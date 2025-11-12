@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:xnusa_mobile/app/modules/auth/controllers/auth_controller.dart';
 import 'package:xnusa_mobile/app/modules/home/controllers/home_controller.dart';
+import 'package:xnusa_mobile/app/modules/profile_page/controllers/follow_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 import 'package:xnusa_mobile/widgets/button_app_unfilled.dart';
 import 'package:xnusa_mobile/widgets/user_post.dart';
@@ -15,6 +16,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
     Get.lazyPut(() => ProfilePageController());
     final authC = Get.put(AuthController());
     final homeController = Get.put(HomeController());
+    final followC = Get.put(FollowController());
 
     return Scaffold(
       backgroundColor: ColorApp.white,
@@ -196,6 +198,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
                           itemCount: controller.userLikes.length,
                           itemBuilder: (context, index) {
                             final likes = controller.userLikes[index];
+
                             return UserPost(
                               post: likes,
                               onTap:

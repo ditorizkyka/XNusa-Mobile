@@ -1,63 +1,72 @@
+import 'package:meta/meta.dart';
+
+@immutable
 class PostModel {
   final int? id;
   final String? userId;
+  final String? username;
+  final String? displayName;
+  final String? profileImageUrl;
   final String? description;
   final String? imageUrl;
   final DateTime? createdAt;
-  final int? likeCount;
-  final int? replyCount;
-  final int? repostCount;
+
+  // Statistik post
+  final int likeCount;
+  final int commentCount;
+  final int? parentPostId;
   final int? repostedFrom;
-  final String? username;
-  final String? profileImageUrl;
-  final PostModel? originalPost;
 
-  // ⬇️ status like untuk UI
+  // Status interaktif
   final bool isLiked;
+  final bool isFollowed;
 
-  PostModel({
+  const PostModel({
     this.id,
     this.userId,
+    this.username,
+    this.displayName,
+    this.profileImageUrl,
     this.description,
     this.imageUrl,
     this.createdAt,
-    this.likeCount,
-    this.replyCount,
-    this.repostCount,
+    this.likeCount = 0,
+    this.commentCount = 0,
+    this.parentPostId,
     this.repostedFrom,
-    this.username,
-    this.profileImageUrl,
-    this.originalPost,
     this.isLiked = false,
+    this.isFollowed = false,
   });
 
+  /// Factory dari JSON Supabase
   factory PostModel.fromJson(Map<String, dynamic> json) {
+    final profile = json['profiles'] ?? {};
     return PostModel(
-      id: json['id'],
-      userId: json['user_id'],
-      description: json['description'],
-      imageUrl: json['image_url'],
+      id: json['id'] as int?,
+      userId: json['user_id'] as String?,
+      description: json['description'] as String?,
+      imageUrl: json['image_url'] as String?,
       createdAt:
           json['created_at'] != null
               ? DateTime.parse(json['created_at'])
               : null,
       likeCount: json['like_count'] ?? 0,
-      replyCount: json['reply_count'] ?? 0,
-      repostCount: json['repost_count'] ?? 0,
-      repostedFrom: json['reposted_from'],
-      username: json['profiles'] != null ? json['profiles']['username'] : null,
-      profileImageUrl:
-          json['profiles'] != null
-              ? json['profiles']['profile_image_url']
-              : null,
-      originalPost:
-          json['original_post'] != null
-              ? PostModel.fromJson(json['original_post'])
-              : null,
+      commentCount: json['comment_count'] ?? 0,
+      parentPostId: json['parent_post_id'] as int?,
+      repostedFrom: json['reposted_from'] as int?,
+
+      // relasi profile
+      username: profile['username'],
+      displayName: profile['display_name'],
+      profileImageUrl: profile['profile_image_url'],
+
+      // tambahan status
       isLiked: json['is_liked'] ?? false,
+      isFollowed: json['is_followed'] ?? false,
     );
   }
 
+  /// Untuk konversi kembali ke Map (opsional)
   Map<String, dynamic> toJson() => {
     'id': id,
     'user_id': userId,
@@ -65,46 +74,49 @@ class PostModel {
     'image_url': imageUrl,
     'created_at': createdAt?.toIso8601String(),
     'like_count': likeCount,
-    'reply_count': replyCount,
-    'repost_count': repostCount,
+    'comment_count': commentCount,
+    'parent_post_id': parentPostId,
     'reposted_from': repostedFrom,
-    'profiles': {'username': username, 'profile_image_url': profileImageUrl},
+    'profiles': {
+      'username': username,
+      'display_name': displayName,
+      'profile_image_url': profileImageUrl,
+    },
     'is_liked': isLiked,
+    'is_followed': isFollowed,
   };
 
-  // ⬇️ untuk update immutable model
   PostModel copyWith({
     int? id,
     String? userId,
+    String? username,
+    String? displayName,
+    String? profileImageUrl,
     String? description,
     String? imageUrl,
     DateTime? createdAt,
     int? likeCount,
-    int? replyCount,
-    int? repostCount,
+    int? commentCount,
+    int? parentPostId,
     int? repostedFrom,
-    String? username,
-    String? profileImageUrl,
-    PostModel? originalPost,
     bool? isLiked,
+    bool? isFollowed,
   }) {
     return PostModel(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      username: username ?? this.username,
+      displayName: displayName ?? this.displayName,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,
       likeCount: likeCount ?? this.likeCount,
-      replyCount: replyCount ?? this.replyCount,
-      repostCount: repostCount ?? this.repostCount,
+      commentCount: commentCount ?? this.commentCount,
+      parentPostId: parentPostId ?? this.parentPostId,
       repostedFrom: repostedFrom ?? this.repostedFrom,
-      username: username ?? this.username,
-      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      originalPost: originalPost ?? this.originalPost,
       isLiked: isLiked ?? this.isLiked,
+      isFollowed: isFollowed ?? this.isFollowed,
     );
   }
-
-  static List<PostModel> listFromJson(List<dynamic> list) =>
-      list.map((e) => PostModel.fromJson(e)).toList();
 }

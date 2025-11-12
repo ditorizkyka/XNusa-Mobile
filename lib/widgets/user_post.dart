@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xnusa_mobile/app/data/models/post_model.dart';
+import 'package:xnusa_mobile/app/modules/profile_page/controllers/follow_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 
 class UserPost extends StatelessWidget {
-  const UserPost({super.key, required this.post, required this.onTap});
+  UserPost({super.key, required this.post, required this.onTap});
 
   final PostModel post;
   final Function()? onTap;
+  final followC = Get.put(FollowController());
 
   @override
   Widget build(BuildContext context) {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    // ✅ pakai find saja di sini
+    // ✅ ambil status dari Supabase
+
     return Column(
       children: [
         Padding(
@@ -24,14 +32,48 @@ class UserPost extends StatelessWidget {
             children: [
               Column(
                 children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundImage:
-                        post.profileImageUrl != null
-                            ? NetworkImage(post.profileImageUrl!)
-                            : const AssetImage('assets/profile_placeholder.png')
-                                as ImageProvider,
-                  ),
+                  Obx(() {
+                    final isFollowed = followC.isFollowed(post.userId ?? '');
+                    return Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundImage: NetworkImage(
+                            post.profileImageUrl ?? '',
+                          ),
+                        ),
+                        if (!isFollowed && post.userId != user?.id)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap:
+                                  () => followC.toggleFollowUser(
+                                    post.userId ?? '',
+                                  ),
+                              child: Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: ColorApp.primary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.add,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
+
                   Gap.h8,
                   Container(
                     width: 2,
@@ -180,7 +222,7 @@ class UserPost extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          "26 Replies",
+                          "26 ",
                           style: TypographyApp.textLight.copyWith(
                             fontSize: SizeApp.h12,
                             color: ColorApp.grey,

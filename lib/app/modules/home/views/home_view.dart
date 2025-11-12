@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:xnusa_mobile/app/modules/profile_page/controllers/follow_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 import 'package:xnusa_mobile/widgets/user_post.dart';
 import '../controllers/home_controller.dart';
@@ -10,8 +11,9 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     Get.lazyPut(() => HomeController());
+    final followC = Get.put(FollowController());
     final TextEditingController postController = TextEditingController();
-
+    // final followC = Get.put(FollowController());
     return Scaffold(
       backgroundColor: ColorApp.white,
       body: SafeArea(
@@ -54,6 +56,7 @@ class HomeView extends GetView<HomeController> {
                     }
 
                     final post = controller.posts[index - 1];
+                    final isFollowed = followC.isFollowed(post.userId ?? '');
                     return UserPost(
                       post: post,
                       onTap:
