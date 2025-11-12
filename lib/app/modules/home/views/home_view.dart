@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:xnusa_mobile/app/data/models/post_model.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 import 'package:xnusa_mobile/widgets/user_post.dart';
 import '../controllers/home_controller.dart';
@@ -58,7 +56,10 @@ class HomeView extends GetView<HomeController> {
                     final post = controller.posts[index - 1];
                     return UserPost(
                       post: post,
-                      onTap: () => controller.toggleLike(post.id!),
+                      onTap:
+                          () => controller.toggleLike(
+                            controller.posts[index - 1],
+                          ),
                     );
                   },
                 );
@@ -87,10 +88,11 @@ class PostField extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.symmetric(
-            vertical: SizeApp.h12,
+            vertical: SizeApp.h8,
             horizontal: SizeApp.w16,
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
                 radius: 18,
@@ -127,7 +129,7 @@ class PostField extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Gap.h12,
+                    // Gap.h12,
                   ],
                 ),
               ),

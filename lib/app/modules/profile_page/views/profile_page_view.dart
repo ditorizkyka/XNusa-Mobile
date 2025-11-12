@@ -25,7 +25,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
         }
 
         final data = controller.profileData;
-        // print(controller.userPosts.length);
+        print(controller.userLikes.length);
         return SafeArea(
           child: DefaultTabController(
             length: 2, // 👉 Threads & Replies
@@ -151,7 +151,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
                   indicatorColor: ColorApp.primary,
                   labelColor: ColorApp.primary,
                   unselectedLabelColor: Colors.grey,
-                  tabs: const [Tab(text: "Threads"), Tab(text: "Replies")],
+                  tabs: const [Tab(text: "Threads"), Tab(text: "Likes")],
                 ),
 
                 // ✅ Isi tab-nya: Threads dan Replies
@@ -166,9 +166,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
                           );
                         }
                         if (controller.userPosts.isEmpty) {
-                          return const Center(
-                            child: Text("Belum ada threads."),
-                          );
+                          return const Center(child: Text("Belum ada Post."));
                         }
                         return ListView.builder(
                           itemCount: controller.userPosts.length,
@@ -176,16 +174,39 @@ class ProfilePageView extends GetView<ProfilePageController> {
                             final post = controller.userPosts[index];
                             return UserPost(
                               post: post,
-                              onTap: () => homeController.toggleLike(post.id!),
+                              onTap:
+                                  () => controller.toggleLike(
+                                    controller.userPosts[index],
+                                    controller.userPosts,
+                                  ),
                             );
                           },
                         );
                       }),
-                      Container(
-                        child: const Center(
-                          child: Text("Replies user akan ditampilkan di sini."),
-                        ),
-                      ),
+                      Obx(() {
+                        if (controller.isLoading.value) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if (controller.userLikes.isEmpty) {
+                          return const Center(child: Text("Belum ada Likes."));
+                        }
+                        return ListView.builder(
+                          itemCount: controller.userLikes.length,
+                          itemBuilder: (context, index) {
+                            final likes = controller.userLikes[index];
+                            return UserPost(
+                              post: likes,
+                              onTap:
+                                  () => controller.toggleLike(
+                                    controller.userLikes[index],
+                                    controller.userLikes,
+                                  ),
+                            );
+                          },
+                        );
+                      }),
 
                       // // Tab 2 → Replies user
                       // Obx(() {

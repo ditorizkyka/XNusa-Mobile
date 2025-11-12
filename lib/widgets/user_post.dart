@@ -140,7 +140,9 @@ class UserPost extends StatelessWidget {
                         GestureDetector(
                           onTap: onTap,
                           child: SvgPicture.asset(
-                            'assets/icons/like.svg',
+                            post.isLiked
+                                ? 'assets/icons/liked.svg'
+                                : 'assets/icons/like.svg',
                             width: SizeApp.w20,
                             height: SizeApp.w20,
                             fit: BoxFit.contain,
@@ -171,13 +173,6 @@ class UserPost extends StatelessWidget {
                             height: SizeApp.w20,
                             fit: BoxFit.contain,
                           ),
-                        ),
-                        Gap.w16,
-                        SvgPicture.asset(
-                          'assets/icons/share.svg',
-                          width: SizeApp.w20,
-                          height: SizeApp.w20,
-                          fit: BoxFit.contain,
                         ),
                       ],
                     ),

@@ -8,13 +8,12 @@ class PostModel {
   final int? replyCount;
   final int? repostCount;
   final int? repostedFrom;
-
-  // Data dari tabel profiles (join Supabase)
   final String? username;
   final String? profileImageUrl;
-
-  // (opsional) data untuk menampilkan repost asal
   final PostModel? originalPost;
+
+  // ⬇️ status like untuk UI
+  final bool isLiked;
 
   PostModel({
     this.id,
@@ -29,6 +28,7 @@ class PostModel {
     this.username,
     this.profileImageUrl,
     this.originalPost,
+    this.isLiked = false,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
@@ -45,19 +45,16 @@ class PostModel {
       replyCount: json['reply_count'] ?? 0,
       repostCount: json['repost_count'] ?? 0,
       repostedFrom: json['reposted_from'],
-
-      // nested data dari join profiles
       username: json['profiles'] != null ? json['profiles']['username'] : null,
       profileImageUrl:
           json['profiles'] != null
               ? json['profiles']['profile_image_url']
               : null,
-
-      // nested original post (kalau kamu ambil repost dengan join lagi)
       originalPost:
           json['original_post'] != null
               ? PostModel.fromJson(json['original_post'])
               : null,
+      isLiked: json['is_liked'] ?? false,
     );
   }
 
@@ -72,9 +69,42 @@ class PostModel {
     'repost_count': repostCount,
     'reposted_from': repostedFrom,
     'profiles': {'username': username, 'profile_image_url': profileImageUrl},
+    'is_liked': isLiked,
   };
 
-  static List<PostModel> listFromJson(List<dynamic> list) {
-    return list.map((e) => PostModel.fromJson(e)).toList();
+  // ⬇️ untuk update immutable model
+  PostModel copyWith({
+    int? id,
+    String? userId,
+    String? description,
+    String? imageUrl,
+    DateTime? createdAt,
+    int? likeCount,
+    int? replyCount,
+    int? repostCount,
+    int? repostedFrom,
+    String? username,
+    String? profileImageUrl,
+    PostModel? originalPost,
+    bool? isLiked,
+  }) {
+    return PostModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      createdAt: createdAt ?? this.createdAt,
+      likeCount: likeCount ?? this.likeCount,
+      replyCount: replyCount ?? this.replyCount,
+      repostCount: repostCount ?? this.repostCount,
+      repostedFrom: repostedFrom ?? this.repostedFrom,
+      username: username ?? this.username,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      originalPost: originalPost ?? this.originalPost,
+      isLiked: isLiked ?? this.isLiked,
+    );
   }
+
+  static List<PostModel> listFromJson(List<dynamic> list) =>
+      list.map((e) => PostModel.fromJson(e)).toList();
 }
