@@ -1,82 +1,101 @@
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
-import 'package:xnusa_mobile/app/modules/search_page/controllers/search_page_controller.dart';
-import 'package:xnusa_mobile/constant/constant.dart';
+import '../controllers/message_page_controller.dart';
+import '../widgets/chat_bubble.dart';
 
-class MessagePageView extends GetView<SearchPageController> {
-  const MessagePageView({super.key});
+class MessagePageView extends GetView<MessagePageController> {
+  const MessagePageView({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppbarMessagesPage(),
-            Expanded(
-              child: ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: 2,
+      appBar: AppBar(
+        title: const Text('NusaAI'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_comment),
+            onPressed: () {
+              controller.startNewConversation();
+            },
+            tooltip: 'Mulai Percakapan Baru',
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Obx(
+              () => ListView.builder(
+                controller:
+                    ScrollController()..addListener(() {
+                      if (controller.chatMessages.isNotEmpty &&
+                          controller.chatMessages.last.isStreaming &&
+                          (ScrollController().position.pixels ==
+                              ScrollController().position.maxScrollExtent)) {
+                        ScrollController().jumpTo(
+                          ScrollController().position.maxScrollExtent,
+                        );
+                      }
+                    }),
+                itemCount: controller.chatMessages.length,
                 itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: ColorApp.lightGrey,
-                        borderRadius: BorderRadius.circular(SizeApp.h12),
-                      ),
-                      margin: EdgeInsets.symmetric(
-                        vertical: SizeApp.w8,
-                        horizontal: SizeApp.h16,
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        vertical: SizeApp.h4,
-                        horizontal: SizeApp.w16,
-                      ),
-                      child: TextField(
-                        // controller: postController,
-                        decoration: const InputDecoration(
-                          hintText: "Cari pesan",
-                          border: InputBorder.none,
-
-                          hintStyle: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w400,
-                            color: ColorApp.grey,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return Container(
-                    padding: EdgeInsets.all(SizeApp.h16),
-                    child: Text(
-                      "Message from post id",
-                      style: TypographyApp.label,
-                    ),
+                  final message = controller.chatMessages[index];
+                  return ChatBubble(
+                    message: message.content,
+                    isUser: message.isUser,
+                    isStreaming: message.isStreaming,
                   );
                 },
               ),
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: TextEditingController(),
+                    decoration: InputDecoration(
+                      hintText: 'Ketik pesan...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                    ),
+                    onSubmitted: (value) {
+                      if (value.isNotEmpty) {
+                        controller.sendMessage(value);
+                        TextEditingController().clear();
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Obx(
+                  () =>
+                      controller.isLoading.value
+                          ? const CircularProgressIndicator()
+                          : FloatingActionButton(
+                            onPressed: () {
+                              final text = TextEditingController().text;
+                              if (text.isNotEmpty) {
+                                controller.sendMessage(text);
+                                TextEditingController().clear();
+                              }
+                            },
+                            child: const Icon(Icons.send),
+                          ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class AppbarMessagesPage extends StatelessWidget {
-  const AppbarMessagesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeApp.w16,
-        vertical: SizeApp.h12,
-      ),
-      child: Row(children: [Text("Messages", style: TypographyApp.headline1)]),
     );
   }
 }
