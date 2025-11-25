@@ -111,13 +111,42 @@ class ProfilePageView extends GetView<ProfilePageController> {
                             ],
                           ),
                           const Spacer(),
-                          CircleAvatar(
-                            radius: SizeApp.h36,
-                            backgroundColor: ColorApp.grey,
-                            backgroundImage:
-                                (data["profile_image_url"] != null)
-                                    ? NetworkImage(data["profile_image_url"])
-                                    : null,
+                          GestureDetector(
+                            onTap: () {
+                              controller.pickAndUploadProfileImage();
+                            },
+                            child: Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: SizeApp.h36,
+                                  backgroundColor: ColorApp.grey,
+                                  backgroundImage:
+                                      (data["profile_image_url"] != null)
+                                          ? NetworkImage(
+                                            data["profile_image_url"],
+                                          )
+                                          : null,
+                                ),
+
+                                // 👉 Icon kamera / edit
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: ColorApp.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.camera_alt,
+                                      size: SizeApp.h12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -127,7 +156,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
                           Expanded(
                             child: ButtonAppUnfilled(
                               onTap: () {
-                                print("Edit Profile");
+                                Get.toNamed('/edit-profile-page');
                               },
                               title: "Edit Profile",
                             ),

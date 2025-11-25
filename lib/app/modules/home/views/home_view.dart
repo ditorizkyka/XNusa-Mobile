@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:xnusa_mobile/app/modules/profile_page/controllers/follow_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 import 'package:xnusa_mobile/widgets/user_post.dart';
 import '../controllers/home_controller.dart';
@@ -11,9 +10,7 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     Get.lazyPut(() => HomeController());
-    final followC = Get.put(FollowController());
     final TextEditingController postController = TextEditingController();
-    // final followC = Get.put(FollowController());
     return Scaffold(
       backgroundColor: ColorApp.white,
       body: SafeArea(
@@ -23,9 +20,33 @@ class HomeView extends GetView<HomeController> {
             Container(
               color: ColorApp.white,
               child: Center(
-                child: Padding(
-                  padding: EdgeInsets.all(SizeApp.w12),
-                  child: Image.asset('assets/logo/xn.png', height: SizeApp.h40),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: SizeApp.w12),
+                      child: Icon(
+                        Icons.search,
+                        color: ColorApp.primary,
+                        size: SizeApp.h24,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: SizeApp.w12),
+                      child: Image.asset(
+                        'assets/logo/xn.png',
+                        height: SizeApp.h40,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: SizeApp.w12),
+                      child: Icon(
+                        Icons.map_outlined,
+                        color: ColorApp.primary,
+                        size: SizeApp.h24,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -56,7 +77,7 @@ class HomeView extends GetView<HomeController> {
                     }
 
                     final post = controller.posts[index - 1];
-                    final isFollowed = followC.isFollowed(post.userId ?? '');
+
                     return UserPost(
                       post: post,
                       onTap:
@@ -89,38 +110,42 @@ class PostField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        Gap.h12,
         Padding(
           padding: EdgeInsets.symmetric(
             vertical: SizeApp.h8,
             horizontal: SizeApp.w16,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundImage:
-                    const AssetImage('assets/profile_placeholder.png')
-                        as ImageProvider,
-              ),
-              Gap.w12,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "You",
-                      style: TypographyApp.textLight.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: ColorApp.primary,
-                        fontSize: SizeApp.h12,
+          child: Obx(
+            () => Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage(
+                    controller.profileData['profile_image_url'] ??
+                        'https://ui-avatars.com/api/?name=User',
+                  ),
+                ),
+                Gap.w12,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "You",
+                        style: TypographyApp.textLight.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: ColorApp.primary,
+                          fontSize: SizeApp.h12,
+                        ),
                       ),
-                    ),
-                    Gap.h4,
-                    SizedBox(
-                      height: SizeApp.h40,
-                      child: TextField(
+                      Gap.h4,
+                      TextField(
                         controller: postController,
+                        minLines: 1,
+                        maxLines: 6, // naik kebawah sampai 6 baris
+                        keyboardType: TextInputType.multiline,
                         decoration: const InputDecoration(
                           hintText: "Apa yang kamu pikirkan?",
                           border: InputBorder.none,
@@ -131,27 +156,26 @@ class PostField extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ),
-                    // Gap.h12,
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.send, color: ColorApp.primary),
-                onPressed: () {
-                  if (postController.text.isNotEmpty) {
-                    controller.addPost(postController.text);
-                    postController.clear();
-                  } else {
-                    Get.snackbar(
-                      "Gagal",
-                      "Isi postingan dulu!",
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  }
-                },
-              ),
-            ],
+                IconButton(
+                  icon: const Icon(Icons.send, color: ColorApp.primary),
+                  onPressed: () {
+                    if (postController.text.isNotEmpty) {
+                      controller.addPost(postController.text);
+                      postController.clear();
+                    } else {
+                      Get.snackbar(
+                        "Gagal",
+                        "Isi postingan dulu!",
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         ),
         Divider(color: ColorApp.white1, thickness: 1),

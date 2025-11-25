@@ -47,6 +47,8 @@ dependencies:
   flutter_native_splash: ^2.4.6
   font_awesome_flutter: ^10.9.0
   flutter_svg: ^2.1.0
+  ar_flutter_plugin: ^0.7.3
+  permission_handler: ^10.1.0
   
 
 dev_dependencies:

@@ -1,17 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xnusa_mobile/app/data/models/post_model.dart';
-import 'package:xnusa_mobile/app/data/models/userModel.dart';
 import 'package:xnusa_mobile/app/modules/home/controllers/like_controller.dart';
-import 'package:xnusa_mobile/app/modules/profile_page/controllers/profile_page_controller.dart';
 
 class HomeController extends GetxController {
   final supabase = Supabase.instance.client;
 
   // Observable list of posts
+  var profileData = {}.obs;
   var posts = <PostModel>[].obs;
-  var user = Rx<UserModel?>(null);
   var isLoading = false.obs;
   final likeC = Get.put(LikeController()); // 🔥 inject 1x, bisa reuse global
 
@@ -73,10 +70,31 @@ class HomeController extends GetxController {
     }
   }
 
+  Future<void> fetchProfile() async {
+    try {
+      isLoading.value = true;
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      final res =
+          await supabase
+              .from('profiles')
+              .select()
+              .eq('id', user.id)
+              .maybeSingle();
+
+      if (res != null) profileData.value = res;
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
-
+    fetchProfile();
     fetchPosts();
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:xnusa_mobile/app/modules/explore_page/controllers/explore_page_controller.dart';
 import 'package:xnusa_mobile/app/modules/explore_page/views/explore_page_view.dart';
 import 'package:xnusa_mobile/app/modules/home/controllers/home_controller.dart';
 import 'package:xnusa_mobile/app/modules/home/views/home_view.dart';
@@ -23,7 +22,6 @@ class DashboardView extends GetView<DashboardController> {
     );
     final authHome = Get.put(HomeController());
     final authSearch = Get.put(SearchPageController());
-    final authExplore = Get.put(ExplorePageController());
     final authProfile = Get.put(ProfilePageController());
 
     return Scaffold(
@@ -40,107 +38,125 @@ class DashboardView extends GetView<DashboardController> {
           ],
         ),
       ),
-      bottomNavigationBar: Obx(
-        () => SizedBox(
-          height: 90,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Background navbar
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, -2),
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 8.0,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildNavItem(
-                            Icons.home_outlined,
-                            Icons.home,
-                            "Home",
-                            0,
-                            dashboardController,
-                            onTap: () => authHome.fetchPosts(),
-                          ),
-                          _buildNavItem(
-                            Icons.search,
-                            Icons.search,
-                            "Search",
-                            1,
-                            dashboardController,
-                            onTap: () => authSearch.searchResults.clear(),
-                          ),
-                          const SizedBox(
-                            width: 60,
-                          ), // space tengah untuk tombol explore
-                          _buildNavItem(
-                            Icons.message_outlined,
-                            Icons.message,
-                            "Messages",
-                            3,
-                            dashboardController,
-                            onTap: () => print("💬 Di Page Messages"),
-                          ),
-                          _buildNavItem(
-                            Icons.person_outline,
-                            Icons.person,
-                            "Profile",
-                            4,
-                            dashboardController,
-                            onTap: () => authProfile.fetchProfile(),
-                          ),
-                        ],
-                      ),
+      bottomNavigationBar: DashboardNavBar(),
+    );
+  }
+}
+
+class DashboardNavBar extends StatelessWidget {
+  DashboardNavBar({super.key, this.isSubPage = false});
+
+  final bool isSubPage;
+  final DashboardController controller = Get.find<DashboardController>();
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => SizedBox(
+        height: 90,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Background navbar
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildNavItem(
+                          Icons.home_outlined,
+                          Icons.home,
+                          "Home",
+                          0,
+                          onTap: () {
+                            controller.changeIndex(0);
+                          },
+                        ),
+                        _buildNavItem(
+                          Icons.search,
+                          Icons.search,
+                          "Search",
+                          1,
+                          onTap: () {
+                            controller.changeIndex(1);
+                          },
+                        ),
+                        const SizedBox(width: 60), // space tengah
+                        _buildNavItem(
+                          Icons.message_outlined,
+                          Icons.message,
+                          "Messages",
+                          3,
+                          onTap: () {
+                            controller.changeIndex(3);
+                          },
+                        ),
+                        _buildNavItem(
+                          Icons.person_outline,
+                          Icons.person,
+                          "Profile",
+                          4,
+                          onTap: () {
+                            controller.changeIndex(4);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
+            ),
 
-              // Center floating button (Explore Page)
-              Positioned(
-                top: 0,
-                left: MediaQuery.of(context).size.width / 2 - 35,
-                child: _buildCenterNavItem(dashboardController),
-              ),
-            ],
-          ),
+            // Tombol tengah (Explore)
+            Positioned(
+              top: 0,
+              left: MediaQuery.of(context).size.width / 2 - 35,
+              child: _buildCenterNavItem(),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // 🧭 Fungsi item nav bawah
   Widget _buildNavItem(
     IconData outlinedIcon,
     IconData filledIcon,
     String label,
-    int index,
-    DashboardController controller, {
+    int index, {
     VoidCallback? onTap,
   }) {
     final isSelected = controller.selectedIndex.value == index;
 
     return InkWell(
       onTap: () {
+        // 👇 logika penting di sini
+        if (isSubPage) {
+          // Kalau lagi di sub-page, balik dulu ke dashboard
+          if (Get.currentRoute != '/dashboard') {
+            Get.offAllNamed('/dashboard');
+          }
+        }
         controller.changeIndex(index);
-        if (onTap != null) onTap(); // jalankan print sesuai page
+        if (onTap != null) onTap();
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -168,12 +184,10 @@ class DashboardView extends GetView<DashboardController> {
     );
   }
 
-  // 🌍 Tombol tengah (Explore Page)
-  Widget _buildCenterNavItem(DashboardController controller) {
+  Widget _buildCenterNavItem() {
     return InkWell(
       onTap: () {
         controller.changeIndex(2);
-        print("🗺️ Di Page Explore");
       },
       borderRadius: BorderRadius.circular(35),
       child: Column(
