@@ -150,40 +150,7 @@ class SignupPage extends GetView<AuthController> {
                     ),
 
                     Gap.h24,
-                    // Garis dan teks "Or Login with"
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Divider(
-                            thickness: 1,
-                            color: Colors.grey.shade300,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text(
-                            "Or Login with",
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500,
-                              color: ColorApp.grey,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(
-                            thickness: 1,
-                            color: Colors.grey.shade300,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Gap.h16,
 
-                    // Tombol social media
-                    SocialMediaOptionAuth(),
-
-                    Gap.h52,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

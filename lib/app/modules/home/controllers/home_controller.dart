@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xnusa_mobile/app/data/models/post_model.dart';
 import 'package:xnusa_mobile/app/modules/home/controllers/like_controller.dart';
+import 'package:xnusa_mobile/app/modules/reply_post_page/controllers/reply_post_page_controller.dart';
 
 class HomeController extends GetxController {
   final supabase = Supabase.instance.client;
@@ -10,7 +11,10 @@ class HomeController extends GetxController {
   var profileData = {}.obs;
   var posts = <PostModel>[].obs;
   var isLoading = false.obs;
-  final likeC = Get.put(LikeController()); // 🔥 inject 1x, bisa reuse global
+  final likeC = Get.put(LikeController());
+  final repliesC = Get.put(
+    ReplyPostPageController(),
+  ); // 🔥 inject 1x, bisa reuse global
 
   // ✅ cukup panggil service global
   Future<void> toggleLike(PostModel post) async {
@@ -95,6 +99,7 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     fetchProfile();
+
     fetchPosts();
   }
 }

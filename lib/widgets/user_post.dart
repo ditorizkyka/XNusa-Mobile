@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xnusa_mobile/app/data/models/post_model.dart';
 import 'package:xnusa_mobile/app/modules/profile_page/controllers/follow_controller.dart';
+import 'package:xnusa_mobile/app/modules/reply_post_page/controllers/reply_post_page_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 
 class UserPost extends StatelessWidget {
@@ -12,11 +13,15 @@ class UserPost extends StatelessWidget {
   final PostModel post;
   final Function()? onTap;
   final followC = Get.put(FollowController());
+  final replyC = Get.put(ReplyPostPageController());
 
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
+    // replyC.fetchReplies(post.id!);
+    final replies = replyC.replies.length;
+
     // ✅ pakai find saja di sini
     // ✅ ambil status dari Supabase
 
@@ -225,7 +230,7 @@ class UserPost extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            "26 ",
+                            "${post.likeCount} Likes",
                             style: TypographyApp.textLight.copyWith(
                               fontSize: SizeApp.h12,
                               color: ColorApp.grey,
@@ -233,7 +238,7 @@ class UserPost extends StatelessWidget {
                           ),
                           Gap.w12,
                           Text(
-                            "26 Reposts",
+                            "${replies} Comments",
                             style: TypographyApp.textLight.copyWith(
                               fontSize: SizeApp.h12,
                               color: ColorApp.grey,

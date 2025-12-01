@@ -251,7 +251,6 @@ class PostReplied extends StatelessWidget {
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () => print("object"),
                     child: SvgPicture.asset(
                       post.isLiked
                           ? 'assets/icons/liked.svg'
@@ -263,7 +262,7 @@ class PostReplied extends StatelessWidget {
                   ),
                   Gap.w4,
                   Text(
-                    ' ${post.likeCount ?? 0}',
+                    ' ${post.likeCount}',
                     style: TypographyApp.textLight.copyWith(
                       fontSize: SizeApp.h12,
                       color: ColorApp.darkGrey,

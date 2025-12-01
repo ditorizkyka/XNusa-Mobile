@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xnusa_mobile/app/modules/profile_page/controllers/profile_page_controller.dart';
-import 'package:xnusa_mobile/constant/constant.dart';
+import 'package:xnusa_mobile/widgets/dialog/choose_button_dialog.dart';
 
 class EditProfilePageController extends GetxController {
   final supabase = Supabase.instance.client;
@@ -66,7 +66,26 @@ class EditProfilePageController extends GetxController {
   // Handle navigation to request verified page
   void navigateToRequestVerified() {
     if (hasUnsavedChanges()) {
-      _showSaveChangesDialog();
+      // _showSaveChangesDialog();
+      showChooseButtonDialog(
+        title: "Unsaved Changes",
+        description:
+            "You have unsaved changes. Would you like to save them before proceeding?",
+        onDiscard: () {
+          Get.back(); // Close dialog
+          Get.toNamed('/request-verified-page'); // Navigate without saving
+        },
+        onSave: () async {
+          Get.back(); // Close dialog
+          await saveProfile(); // Save changes
+          // Only navigate if save was successful
+          if (!isLoading.value) {
+            Get.toNamed('/request-verified-page');
+          }
+        },
+        discardText: "Discard",
+        saveText: "Save & Continue",
+      );
     } else {
       Get.toNamed('/request-verified-page');
     }
@@ -74,77 +93,77 @@ class EditProfilePageController extends GetxController {
 
   // Show dialog when there are unsaved changes
   // Show dialog when there are unsaved changes
-  void _showSaveChangesDialog() {
-    Get.dialog(
-      AlertDialog(
-        alignment: Alignment.center,
-        backgroundColor: ColorApp.white,
-        title: Text(
-          'Unsaved Changes',
-          style: TypographyApp.headline1.copyWith(fontSize: SizeApp.h16),
-          textAlign: TextAlign.center,
-        ),
-        content: Text(
-          'You have unsaved changes. Would you like to save them before proceeding?',
-          style: TypographyApp.label.copyWith(
-            fontWeight: FontWeight.w200,
-            color: ColorApp.darkGrey,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Get.back(); // Close dialog
-                  Get.toNamed(
-                    '/request-verified-page',
-                  ); // Navigate without saving
-                },
-                child: const Text(
-                  'Discard',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Get.back(); // Close dialog
-                  await saveProfile(); // Save changes
-                  // Only navigate if save was successful
-                  if (!isLoading.value) {
-                    Get.toNamed('/request-verified-page');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                ),
-                child: const Text(
-                  'Save & Continue',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-        ],
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      ),
-      barrierDismissible: true, // User can tap outside to cancel
-    );
-  }
+  // void _showSaveChangesDialog() {
+  //   Get.dialog(
+  //     AlertDialog(
+  //       alignment: Alignment.center,
+  //       backgroundColor: ColorApp.white,
+  //       title: Text(
+  //         'Unsaved Changes',
+  //         style: TypographyApp.headline1.copyWith(fontSize: SizeApp.h16),
+  //         textAlign: TextAlign.center,
+  //       ),
+  //       content: Text(
+  //         'You have unsaved changes. Would you like to save them before proceeding?',
+  //         style: TypographyApp.label.copyWith(
+  //           fontWeight: FontWeight.w200,
+  //           color: ColorApp.darkGrey,
+  //         ),
+  //         textAlign: TextAlign.center,
+  //       ),
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  //       actions: [
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             TextButton(
+  //               onPressed: () {
+  //                 Get.back(); // Close dialog
+  //                 Get.toNamed(
+  //                   '/request-verified-page',
+  //                 ); // Navigate without saving
+  //               },
+  //               child: const Text(
+  //                 'Discard',
+  //                 style: TextStyle(
+  //                   color: Colors.red,
+  //                   fontWeight: FontWeight.w600,
+  //                 ),
+  //               ),
+  //             ),
+  //             ElevatedButton(
+  //               onPressed: () async {
+  //                 Get.back(); // Close dialog
+  //                 await saveProfile(); // Save changes
+  //                 // Only navigate if save was successful
+  //                 if (!isLoading.value) {
+  //                   Get.toNamed('/request-verified-page');
+  //                 }
+  //               },
+  //               style: ElevatedButton.styleFrom(
+  //                 backgroundColor: Colors.black,
+  //                 foregroundColor: Colors.white,
+  //                 shape: RoundedRectangleBorder(
+  //                   borderRadius: BorderRadius.circular(8),
+  //                 ),
+  //                 padding: const EdgeInsets.symmetric(
+  //                   horizontal: 20,
+  //                   vertical: 12,
+  //                 ),
+  //               ),
+  //               child: const Text(
+  //                 'Save & Continue',
+  //                 style: TextStyle(fontWeight: FontWeight.w600),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //       actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+  //     ),
+  //     barrierDismissible: true, // User can tap outside to cancel
+  //   );
+  // }
 
   // Toggle Instagram badge
   void toggleInstagramBadge(bool value) {

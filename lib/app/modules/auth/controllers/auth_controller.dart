@@ -35,7 +35,7 @@ class AuthController extends GetxController {
         });
 
         Get.snackbar('Sukses', 'Akun berhasil dibuat!');
-        Get.offAllNamed('/login');
+        Get.offAllNamed('/signin');
       }
     } catch (e) {
       Get.snackbar('Error', e.toString());
@@ -91,6 +91,61 @@ class AuthController extends GetxController {
     await supabase.auth.signOut();
     await box.clear();
     user.value = null;
-    Get.offAllNamed('/signin');
+  }
+
+  // ---------------------------------------------
+  // SIGN IN WITH GOOGLE
+  // ---------------------------------------------
+  Future<void> signInWithGoogle() async {
+    try {
+      isLoading.value = true;
+
+      // 🔹 1. Trigger Supabase Google OAuth
+      await supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback',
+      );
+
+      // 🔹 2. Dengarkan perubahan Auth state
+      supabase.auth.onAuthStateChange.listen((data) async {
+        final session = data.session;
+        final userData = session?.user;
+
+        if (userData != null) {
+          // 🔹 3. Cek apakah profile sudah dibuat di tabel 'profiles'
+          final existingProfile =
+              await supabase
+                  .from('profiles')
+                  .select()
+                  .eq('id', userData.id)
+                  .maybeSingle();
+
+          if (existingProfile == null) {
+            // 🔹 4. Buat profile baru untuk user baru
+            await supabase.from('profiles').upsert({
+              'id': userData.id,
+              'username': userData.email?.split('@')[0],
+              'display_name': userData.userMetadata?['full_name'] ?? 'No Name',
+              'bio': '',
+              'profile_image_url': userData.userMetadata?['avatar_url'],
+            });
+          }
+
+          // 🔹 5. Simpan status login ke Hive
+          final box = await Hive.openBox('userBox');
+          await box.put('isLoggedIn', true);
+
+          // 🔹 6. Notifikasi
+          Get.snackbar('Success', 'Login with Google berhasil!');
+
+          // 🔹 7. Navigate
+          Get.offAllNamed('/dashboard');
+        }
+      });
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

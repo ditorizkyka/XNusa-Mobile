@@ -51,9 +51,8 @@ class UserReply extends StatelessWidget {
                               right: 0,
                               child: GestureDetector(
                                 onTap:
-                                    () => followC.toggleFollowUser(
-                                      reply.userId ?? '',
-                                    ),
+                                    () =>
+                                        followC.toggleFollowUser(reply.userId),
                                 child: Container(
                                   width: 16,
                                   height: 16,
@@ -87,7 +86,7 @@ class UserReply extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            reply.username ?? "Anonim",
+                            reply.username,
                             style: TypographyApp.textLight.copyWith(
                               fontWeight: FontWeight.bold,
                               color: ColorApp.primary,
