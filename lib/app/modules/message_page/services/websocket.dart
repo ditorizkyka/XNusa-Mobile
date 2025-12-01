@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:xnusa_mobile/app/modules/message_page/models/chat_model.dart';
 
 class Websocket {
   WebSocketChannel? _channel;
 
-  // Update URL
-  final String _wsUrl = 'ws://96f214845c22.ngrok-free.app/nusaai/api/ws/chat';
+  final String _wsUrl = dotenv.env['WS_URL'] ?? '';
 
   void connect() {
     try {

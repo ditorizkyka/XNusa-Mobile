@@ -14,11 +14,11 @@ class MessagePageView extends GetView<MessagePageController> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_comment),
+            icon: const Icon(Icons.refresh),
             onPressed: () {
               controller.startNewConversation();
             },
-            tooltip: 'Mulai Percakapan Baru',
+            tooltip: 'Reset',
           ),
         ],
       ),
@@ -27,6 +27,7 @@ class MessagePageView extends GetView<MessagePageController> {
           Expanded(
             child: Obx(
               () => ListView.builder(
+                padding: const EdgeInsets.only(bottom: 10),
                 controller:
                     ScrollController()..addListener(() {
                       if (controller.chatMessages.isNotEmpty &&
@@ -55,39 +56,53 @@ class MessagePageView extends GetView<MessagePageController> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: TextEditingController(),
-                    decoration: InputDecoration(
-                      hintText: 'Ketik pesan...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
+                  child: Obx(() {
+                    bool isReady =
+                        controller.currentConversationId.value.isNotEmpty;
+
+                    return TextField(
+                      controller: controller.textController,
+                      enabled: isReady,
+                      decoration: InputDecoration(
+                        hintText: isReady ? 'Ask anything..' : 'Connecting...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                    ),
-                    onSubmitted: (value) {
-                      if (value.isNotEmpty) {
-                        controller.sendMessage(value);
-                        TextEditingController().clear();
-                      }
-                    },
-                  ),
+                      onSubmitted: (value) {
+                        controller.sendMessage();
+                      },
+                    );
+                  }),
                 ),
                 const SizedBox(width: 8),
                 Obx(
                   () =>
                       controller.isLoading.value
-                          ? const CircularProgressIndicator()
+                          ? const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
                           : FloatingActionButton(
-                            onPressed: () {
-                              final text = TextEditingController().text;
-                              if (text.isNotEmpty) {
-                                controller.sendMessage(text);
-                                TextEditingController().clear();
-                              }
-                            },
+                            mini: true,
+                            onPressed:
+                                controller.currentConversationId.value.isEmpty
+                                    ? null
+                                    : () {
+                                      controller.sendMessage();
+                                    },
+                            backgroundColor:
+                                controller.currentConversationId.value.isEmpty
+                                    ? Colors.grey
+                                    : null,
                             child: const Icon(Icons.send),
                           ),
                 ),
