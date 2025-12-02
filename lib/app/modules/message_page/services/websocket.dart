@@ -1,0 +1,43 @@
+import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/status.dart' as status;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:xnusa_mobile/app/modules/message_page/models/chat_model.dart';
+
+class Websocket {
+  WebSocketChannel? _channel;
+
+  final String _wsUrl = dotenv.env['WS_URL'] ?? '';
+
+  void connect() {
+    try {
+      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
+      print("WS: Connected");
+    } catch (e) {
+      print("WS Error: $e");
+    }
+  }
+
+  void sendRequest(ChatRequest request) {
+    if (_channel != null) {
+      final jsonString = jsonEncode(request.toJson());
+      print("WS Sending: $jsonString");
+      _channel!.sink.add(jsonString);
+    } else {
+      print("WS Error: Channel is null");
+    }
+  }
+
+  Stream get messagesStream {
+    if (_channel != null) {
+      return _channel!.stream;
+    }
+    return const Stream.empty();
+  }
+
+  void disconnect() {
+    if (_channel != null) {
+      _channel!.sink.close(status.goingAway);
+    }
+  }
+}

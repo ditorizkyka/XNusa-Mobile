@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
 
 import '../controllers/dashboard_controller.dart';
+import 'package:xnusa_mobile/app/modules/message_page/controllers/message_page_controller.dart';
 
 class DashboardBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<DashboardController>(
-      () => DashboardController(),
-    );
+    Get.lazyPut<DashboardController>(() => DashboardController());
+    Get.lazyPut<MessagePageController>(() => MessagePageController());
   }
 }
