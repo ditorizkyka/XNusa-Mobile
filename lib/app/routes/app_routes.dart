@@ -12,6 +12,9 @@ abstract class Routes {
   static const DASHBOARD = _Paths.DASHBOARD;
   static const SEARCH_PAGE = _Paths.SEARCH_PAGE;
   static const MESSAGE_PAGE = _Paths.MESSAGE_PAGE;
+  static const EDIT_PROFILE_PAGE = _Paths.EDIT_PROFILE_PAGE;
+  static const REQUEST_VERIFIED_PAGE = _Paths.REQUEST_VERIFIED_PAGE;
+  static const REPLY_POST_PAGE = _Paths.REPLY_POST_PAGE;
 }
 
 abstract class _Paths {
@@ -25,4 +28,7 @@ abstract class _Paths {
   static const DASHBOARD = '/dashboard';
   static const SEARCH_PAGE = '/search-page';
   static const MESSAGE_PAGE = '/message-page';
+  static const EDIT_PROFILE_PAGE = '/edit-profile-page';
+  static const REQUEST_VERIFIED_PAGE = '/request-verified-page';
+  static const REPLY_POST_PAGE = '/reply-post-page';
 }

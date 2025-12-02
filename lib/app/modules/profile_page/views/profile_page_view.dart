@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:xnusa_mobile/app/modules/auth/controllers/auth_controller.dart';
-import 'package:xnusa_mobile/app/modules/home/controllers/home_controller.dart';
-import 'package:xnusa_mobile/app/modules/profile_page/controllers/follow_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 import 'package:xnusa_mobile/widgets/button_app_unfilled.dart';
+import 'package:xnusa_mobile/widgets/dialog/choose_button_dialog.dart';
 import 'package:xnusa_mobile/widgets/user_post.dart';
 import '../controllers/profile_page_controller.dart';
 
@@ -15,8 +15,6 @@ class ProfilePageView extends GetView<ProfilePageController> {
   Widget build(BuildContext context) {
     Get.lazyPut(() => ProfilePageController());
     final authC = Get.put(AuthController());
-    final homeController = Get.put(HomeController());
-    final followC = Get.put(FollowController());
 
     return Scaffold(
       backgroundColor: ColorApp.white,
@@ -27,7 +25,6 @@ class ProfilePageView extends GetView<ProfilePageController> {
         }
 
         final data = controller.profileData;
-        print(controller.userLikes.length);
         return SafeArea(
           child: DefaultTabController(
             length: 2, // 👉 Threads & Replies
@@ -62,24 +59,53 @@ class ProfilePageView extends GetView<ProfilePageController> {
                                     data["username"] ?? "username",
                                     style: TypographyApp.label.copyWith(
                                       color: ColorApp.primary,
-                                      fontSize: SizeApp.h12,
+                                      fontSize: SizeApp.customHeight(10),
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   Gap.w8,
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: SizeApp.w8,
-                                      vertical: SizeApp.h4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      "xnusa/id/${data["username"]}",
-                                      style: TypographyApp.textLight.copyWith(
-                                        color: ColorApp.darkGrey,
-                                        fontSize: SizeApp.h8,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: "xnusa/id/${data["username"]}",
+                                        ),
+                                      );
+                                      Get.snackbar(
+                                        'Copied!',
+                                        'Profile URL copied to clipboard',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        duration: const Duration(seconds: 2),
+                                        margin: EdgeInsets.all(16),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: SizeApp.w8,
+                                        vertical: SizeApp.h4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            "Copy Profile URL",
+                                            style: TypographyApp.textLight
+                                                .copyWith(
+                                                  color: ColorApp.darkGrey,
+                                                  fontSize: SizeApp.h8,
+                                                ),
+                                          ),
+                                          Gap.w4,
+                                          Icon(
+                                            Icons.copy_rounded,
+                                            size: SizeApp.h8,
+                                            color: ColorApp.darkGrey,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -111,13 +137,42 @@ class ProfilePageView extends GetView<ProfilePageController> {
                             ],
                           ),
                           const Spacer(),
-                          CircleAvatar(
-                            radius: SizeApp.h36,
-                            backgroundColor: ColorApp.grey,
-                            backgroundImage:
-                                (data["profile_image_url"] != null)
-                                    ? NetworkImage(data["profile_image_url"])
-                                    : null,
+                          GestureDetector(
+                            onTap: () {
+                              controller.pickAndUploadProfileImage();
+                            },
+                            child: Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: SizeApp.h36,
+                                  backgroundColor: ColorApp.grey,
+                                  backgroundImage:
+                                      (data["profile_image_url"] != null)
+                                          ? NetworkImage(
+                                            data["profile_image_url"],
+                                          )
+                                          : null,
+                                ),
+
+                                // 👉 Icon kamera / edit
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: ColorApp.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.camera_alt,
+                                      size: SizeApp.h12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -127,7 +182,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
                           Expanded(
                             child: ButtonAppUnfilled(
                               onTap: () {
-                                print("Edit Profile");
+                                Get.toNamed('/edit-profile-page');
                               },
                               title: "Edit Profile",
                             ),
@@ -136,8 +191,18 @@ class ProfilePageView extends GetView<ProfilePageController> {
                           Expanded(
                             child: ButtonAppUnfilled(
                               onTap: () async {
-                                await authC.signOut();
-                                Get.offAllNamed('/signin');
+                                showChooseButtonDialog(
+                                  title: "Sign out from this account?",
+                                  description:
+                                      "Are you sure you want to log out? You can always log back in later.",
+                                  onDiscard: () => Get.back(),
+                                  onSave: () async {
+                                    await authC.signOut();
+                                    Get.offAllNamed('/signin');
+                                  },
+                                  cancelText: "Cancel",
+                                  confirmText: "Sign Out",
+                                );
                               },
                               title: "Sign Out",
                             ),
@@ -261,8 +326,18 @@ class AppBarProfile extends StatelessWidget {
               children: [
                 GestureDetector(
                   onTap: () async {
-                    await authC.signOut();
-                    Get.offAllNamed('/signin');
+                    showChooseButtonDialog(
+                      title: "Sign out from this account?",
+                      description:
+                          "Are you sure you want to log out? You can always log back in later.",
+                      onDiscard: () => Get.back(),
+                      onSave: () async {
+                        await authC.signOut();
+                        Get.offAllNamed('/signin');
+                      },
+                      cancelText: "Cancel",
+                      confirmText: "Sign Out",
+                    );
                   },
                   child: Icon(Icons.logout_rounded, size: SizeApp.h20),
                 ),
@@ -282,6 +357,10 @@ class FollowersRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<ProfilePageController>();
+    final username = controller.profileData["username"] ?? "";
+    final profileUrl = "xnusa.id/$username";
+
     return Row(
       children: [
         // Stack of avatars
@@ -342,16 +421,20 @@ class FollowersRow extends StatelessWidget {
             fontWeight: FontWeight.w400,
           ),
         ),
-        const SizedBox(width: 4),
-        const Text('•', style: TextStyle(fontSize: 14, color: Colors.black54)),
-        const SizedBox(width: 4),
-        const Text(
-          'fb.com',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.black54,
-            fontWeight: FontWeight.w400,
-          ),
+        const SizedBox(width: 8),
+        // Icon copy URL
+        GestureDetector(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: profileUrl));
+            Get.snackbar(
+              'Copied!',
+              'Profile URL copied to clipboard',
+              snackPosition: SnackPosition.BOTTOM,
+              duration: const Duration(seconds: 2),
+              margin: EdgeInsets.all(16),
+            );
+          },
+          child: Icon(Icons.copy_rounded, size: 18, color: ColorApp.darkGrey),
         ),
       ],
     );

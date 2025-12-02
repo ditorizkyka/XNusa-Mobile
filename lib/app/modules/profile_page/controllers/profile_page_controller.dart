@@ -11,12 +11,57 @@ class ProfilePageController extends GetxController {
   var userPosts = <PostModel>[].obs; // post milik user login
   var userLikes = <PostModel>[].obs; // post yang dilike user
   var isLoading = false.obs;
+  final ImagePicker _picker = ImagePicker();
 
   final likeC = Get.put(LikeController()); // 🔥 controller global
 
   /// ✅ Toggle like menggunakan mekanisme optimistic update
   Future<void> toggleLike(PostModel post, RxList<PostModel> list) async {
     await likeC.toggleLikeOptimistic(postList: list, post: post);
+  }
+
+  Future<void> pickAndUploadProfileImage() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      // 1️⃣ Pilih gambar
+      final XFile? picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
+      if (picked == null) return;
+
+      final bytes = await picked.readAsBytes();
+      final fileExt = picked.name.split('.').last;
+      final filePath = 'profile/${user.id}.$fileExt';
+
+      // 2️⃣ Upload ke Supabase Storage
+      await supabase.storage
+          .from('profile_images')
+          .uploadBinary(
+            filePath,
+            bytes,
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      // 3️⃣ Dapatkan URL public
+      final imageUrl = supabase.storage
+          .from('profile_images')
+          .getPublicUrl(filePath);
+
+      // 4️⃣ Update ke tabel profiles
+      await supabase
+          .from('profiles')
+          .update({'profile_image_url': imageUrl})
+          .eq('id', user.id);
+
+      // 5️⃣ Refresh data profile
+      await fetchProfile();
+
+      Get.snackbar("Success", "Foto profil berhasil diperbarui");
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
   }
 
   /// 🔹 Ambil data profil + konten user

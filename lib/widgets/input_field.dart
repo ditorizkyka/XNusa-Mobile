@@ -47,7 +47,7 @@ class InputField extends StatelessWidget {
               hintStyle: const TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w400,
-                color: Colors.black87,
+                color: ColorApp.grey,
               ),
 
               suffixIcon:

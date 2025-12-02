@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:xnusa_mobile/app/modules/auth/controllers/auth_controller.dart';
 
 class SocialMediaOptionAuth extends StatelessWidget {
   const SocialMediaOptionAuth({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authC = Get.put(AuthController());
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -35,9 +39,7 @@ class SocialMediaOptionAuth extends StatelessWidget {
 
         const SizedBox(width: 16),
         InkWell(
-          onTap: () {
-            print("Login with Google");
-          },
+          onTap: () => authC.signInWithGoogle(),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(12),

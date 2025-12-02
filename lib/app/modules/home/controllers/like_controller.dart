@@ -32,7 +32,7 @@ class LikeController extends GetxController {
     // ===== OPTIMISTIC UPDATE UI =====
     final current = postList[idx];
     final nextLiked = !current.isLiked;
-    final currentCount = current.likeCount ?? 0;
+    final currentCount = current.likeCount;
     final nextCount =
         nextLiked ? currentCount + 1 : (currentCount - 1).clamp(0, 1 << 31);
 
