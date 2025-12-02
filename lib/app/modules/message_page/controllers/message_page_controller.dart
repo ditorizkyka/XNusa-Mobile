@@ -1,25 +1,31 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/websocket.dart';
-import 'package:xnusa_mobile/app/modules/message_page/models/chat_model.dart';
+import '../models/chat_model.dart';
 
 class MessagePageController extends GetxController {
   final Websocket _websocket = Websocket();
 
+  final TextEditingController textController = TextEditingController();
+
   var chatMessages = <ChatMessage>[].obs;
   var currentConversationId = "".obs;
   var isLoading = false.obs;
-  String? _pendingMessage;
+
+  bool get isReady => currentConversationId.value.isNotEmpty;
 
   @override
   void onInit() {
     super.onInit();
     _connectAndListen();
+    startNewConversation();
   }
 
   @override
   void onClose() {
     _websocket.disconnect();
+    textController.dispose();
     super.onClose();
   }
 
@@ -38,6 +44,7 @@ class MessagePageController extends GetxController {
       },
       onError: (error) {
         print("WS Stream Error: $error");
+        // Opt: Handle Reconnect
       },
       onDone: () {
         print("WS Closed");
@@ -55,11 +62,8 @@ class MessagePageController extends GetxController {
       case 'CONVERSATION_STARTED':
         //TODO...
 
-        if (_pendingMessage != null) {
-          _sendActualMessage(_pendingMessage!);
-          _pendingMessage = null;
-        }
         print("Conversation started ID: ${chatEvent.conversationId}");
+        isLoading.value = false;
         break;
 
       case 'CONVERSATION_RESUMED':
@@ -78,10 +82,6 @@ class MessagePageController extends GetxController {
       case 'ERROR':
         Get.snackbar("Error", chatEvent.text ?? "Unknown error");
         isLoading.value = false;
-        if (_pendingMessage != null) {
-          _pendingMessage = null;
-          isLoading.value = false;
-        }
         break;
 
       default:
@@ -112,38 +112,28 @@ class MessagePageController extends GetxController {
     isLoading.value = false;
   }
 
-  void _sendActualMessage(String text) {
-    _websocket.sendRequest(
-      ChatRequest(
-        action: "SEND_MESSAGE",
-        conversationId: currentConversationId.value,
-        text: text,
-      ),
-    );
-  }
-
   // ACTION
   // Start new conversation.
   void startNewConversation() {
     chatMessages.clear();
     currentConversationId.value = "";
-    _pendingMessage = null;
     _websocket.sendRequest(ChatRequest(action: "NEW_CONVERSATION"));
   }
 
   // Send message.
-  void sendMessage(String text) {
+  void sendMessage() {
+    String text = textController.text;
     if (text.trim().isEmpty) return;
+
+    if (currentConversationId.value.isEmpty) {
+      Get.snackbar("Wait a moment", "Connecting...");
+      return;
+    }
 
     chatMessages.add(ChatMessage(content: text, isUser: true));
     isLoading.value = true;
 
-    if (currentConversationId.value.isEmpty) {
-      _pendingMessage = text;
-      _websocket.sendRequest(ChatRequest(action: "NEW_CONVERSATION"));
-    } else {
-      _sendActualMessage(text);
-    }
+    textController.clear();
 
     _websocket.sendRequest(
       ChatRequest(

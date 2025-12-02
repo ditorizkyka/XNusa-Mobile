@@ -48,6 +48,8 @@ dependencies:
   font_awesome_flutter: ^10.9.0
   flutter_svg: ^2.1.0
   web_socket_channel: ^3.0.3
+  flutter_markdown: ^0.7.7+1
+  flutter_dotenv: ^6.0.0
   ar_flutter_plugin: ^0.7.3
   permission_handler: ^10.1.0
   
@@ -78,6 +80,7 @@ flutter:
   assets:
     - assets/logo/
     - assets/icons/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
