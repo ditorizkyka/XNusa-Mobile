@@ -49,7 +49,12 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
                   itemCount: controller.replies.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
-                      return PostReplied(post: post);
+                      return PostReplied(
+                        post: post,
+                        onTap: () {
+                          homeController.toggleLike(post);
+                        },
+                      );
                     }
 
                     if (controller.replies.isEmpty && index == 1) {
@@ -136,7 +141,10 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
                           Gap.w8,
 
                           GestureDetector(
-                            onTap: () => controller.submitReply(post),
+                            onTap:
+                                () => controller.submitReply(
+                                  postId: post.id ?? 0,
+                                ),
                             child: Icon(
                               Icons.send,
                               color:
@@ -199,8 +207,9 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
 }
 
 class PostReplied extends StatelessWidget {
-  const PostReplied({super.key, required this.post});
+  const PostReplied({super.key, required this.post, this.onTap});
 
+  final Function()? onTap;
   final PostModel post;
 
   @override
@@ -251,6 +260,7 @@ class PostReplied extends StatelessWidget {
               Row(
                 children: [
                   GestureDetector(
+                    onTap: onTap,
                     child: SvgPicture.asset(
                       post.isLiked
                           ? 'assets/icons/liked.svg'
@@ -262,7 +272,7 @@ class PostReplied extends StatelessWidget {
                   ),
                   Gap.w4,
                   Text(
-                    ' ${post.likeCount}',
+                    ' ${post.likeCount} Likes',
                     style: TypographyApp.textLight.copyWith(
                       fontSize: SizeApp.h12,
                       color: ColorApp.darkGrey,
@@ -282,7 +292,7 @@ class PostReplied extends StatelessWidget {
                   ),
                   Gap.w4,
                   Text(
-                    ' ${post.likeCount ?? 0}',
+                    ' ${post.commentCount} Comments',
                     style: TypographyApp.textLight.copyWith(
                       fontSize: SizeApp.h12,
                       color: ColorApp.darkGrey,

@@ -238,7 +238,7 @@ class UserPost extends StatelessWidget {
                           ),
                           Gap.w12,
                           Text(
-                            "${replies} Comments",
+                            "${post.commentCount} Comments",
                             style: TypographyApp.textLight.copyWith(
                               fontSize: SizeApp.h12,
                               color: ColorApp.grey,

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xnusa_mobile/app/data/models/post_model.dart';
 import 'package:xnusa_mobile/app/data/models/reply_model.dart';
+import 'package:xnusa_mobile/app/modules/home/controllers/like_controller.dart';
 
 class ReplyPostPageController extends GetxController {
   final supabase = Supabase.instance.client;
@@ -11,35 +12,72 @@ class ReplyPostPageController extends GetxController {
   RxInt charCount = 0.obs;
   final replies = <ReplyModel>[].obs;
 
-  //TODO: Implement ReplyPostPageController
+  // ✅ Tambahkan observable untuk post yang sedang dilihat
+  final currentPost = PostModel().obs;
+
+  // ✅ Tambahkan LikeController
+  final likeC = Get.find<LikeController>();
+
+  // ✅ Daftar sementara untuk optimistic update (single post)
+  final RxList<PostModel> _singlePostList = <PostModel>[].obs;
 
   final count = 0.obs;
+
   @override
   void onInit() {
     replyController.addListener(() {
       charCount.value = replyController.text.length;
     });
+
+    // ✅ Set initial post dari arguments
+    if (Get.arguments != null && Get.arguments is PostModel) {
+      currentPost.value = Get.arguments;
+      _singlePostList.add(currentPost.value);
+    }
+
     super.onInit();
   }
 
-  Future<void> submitReply(PostModel post) async {
-    final replyText = replyController.text.trim();
-    try {
-      final user = supabase.auth.currentUser;
-      if (user == null) return;
+  // ✅ Method untuk toggle like pada post yang sedang dibuka
+  Future<void> togglePostLike() async {
+    if (currentPost.value.id == null) return;
 
-      await supabase.from('replies').insert({
-        'user_id': user.id,
-        'content': replyText,
-        'post_id': post.id,
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      Get.snackbar("Success", "Reply submitted successfully");
-      replyController.clear();
-      await fetchReplies(post.id!);
-    } catch (e) {
-      print('⚠️ Error addPost: $e');
+    // Gunakan list sementara untuk optimistic update
+    await likeC.toggleLikeOptimistic(
+      postList: _singlePostList,
+      post: currentPost.value,
+    );
+
+    // Update currentPost dengan nilai terbaru dari list
+    if (_singlePostList.isNotEmpty) {
+      currentPost.value = _singlePostList.first;
     }
+  }
+
+  Future<void> submitReply({required int postId}) async {
+    final replyText = replyController.text.trim();
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+
+    // insert reply
+    await supabase.from('replies').insert({
+      'post_id': postId,
+      'user_id': user.id,
+      'content': replyText,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    // update comment_count
+    await supabase.rpc('increment_comment_count', params: {'post_id': postId});
+
+    Get.snackbar("Success", "Reply submitted successfully");
+    replyController.clear();
+    await fetchReplies(postId);
+
+    // ✅ Update comment count di currentPost
+    currentPost.value = currentPost.value.copyWith(
+      commentCount: (currentPost.value.commentCount) + 1,
+    );
   }
 
   Future<void> fetchReplies(int postId) async {
@@ -55,8 +93,6 @@ class ReplyPostPageController extends GetxController {
           (response as List)
               .map((json) => ReplyModel.fromJson(json as Map<String, dynamic>))
               .toList();
-
-      // Process the response as needed
     } catch (e) {
       print('⚠️ Error fetchReplies: $e');
     } finally {
@@ -71,6 +107,7 @@ class ReplyPostPageController extends GetxController {
 
   @override
   void onClose() {
+    replyController.dispose();
     super.onClose();
   }
 

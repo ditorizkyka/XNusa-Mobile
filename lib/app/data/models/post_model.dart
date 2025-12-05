@@ -14,8 +14,7 @@ class PostModel {
   // Statistik post
   final int likeCount;
   final int commentCount;
-  final int? parentPostId;
-  final int? repostedFrom;
+  final List? comments;
 
   // Status interaktif
   final bool isLiked;
@@ -32,8 +31,7 @@ class PostModel {
     this.createdAt,
     this.likeCount = 0,
     this.commentCount = 0,
-    this.parentPostId,
-    this.repostedFrom,
+    this.comments,
     this.isLiked = false,
     this.isFollowed = false,
   });
@@ -52,8 +50,6 @@ class PostModel {
               : null,
       likeCount: json['like_count'] ?? 0,
       commentCount: json['comment_count'] ?? 0,
-      parentPostId: json['parent_post_id'] as int?,
-      repostedFrom: json['reposted_from'] as int?,
 
       // relasi profile
       username: profile['username'],
@@ -75,8 +71,6 @@ class PostModel {
     'created_at': createdAt?.toIso8601String(),
     'like_count': likeCount,
     'comment_count': commentCount,
-    'parent_post_id': parentPostId,
-    'reposted_from': repostedFrom,
     'profiles': {
       'username': username,
       'display_name': displayName,
@@ -113,8 +107,6 @@ class PostModel {
       createdAt: createdAt ?? this.createdAt,
       likeCount: likeCount ?? this.likeCount,
       commentCount: commentCount ?? this.commentCount,
-      parentPostId: parentPostId ?? this.parentPostId,
-      repostedFrom: repostedFrom ?? this.repostedFrom,
       isLiked: isLiked ?? this.isLiked,
       isFollowed: isFollowed ?? this.isFollowed,
     );
