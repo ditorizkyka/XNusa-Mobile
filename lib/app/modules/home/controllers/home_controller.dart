@@ -53,6 +53,16 @@ class HomeController extends GetxController {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getReplies(int postId) async {
+    final data = await supabase
+        .from('replies')
+        .select()
+        .eq('post_id', postId)
+        .order('created_at', ascending: true);
+
+    return data;
+  }
+
   /// ✅ Add a new post
   Future<void> addPost(String description, {String? imageUrl}) async {
     try {

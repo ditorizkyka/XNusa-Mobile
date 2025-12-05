@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,6 +16,11 @@ void main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyZm5sZmNhZHR5enNseWx6a2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA0NDgwMDYsImV4cCI6MjA3NjAyNDAwNn0.dIdwaQUOUEEn3Ev675WZfbi6NiNl0FWVX0rgWU_b3HQ',
   );
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print('Error loading .env file: $e');
+  }
 
   Hive.registerAdapter(UserModelAdapter());
   box = await Hive.openBox('userBox');
