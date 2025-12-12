@@ -3,9 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xnusa_mobile/app/data/models/post_model.dart';
 import 'package:xnusa_mobile/app/modules/home/controllers/like_controller.dart';
 import 'package:xnusa_mobile/app/modules/reply_post_page/controllers/reply_post_page_controller.dart';
+import 'package:xnusa_mobile/app/modules/home/services/ingestion.dart';
 
 class HomeController extends GetxController {
   final supabase = Supabase.instance.client;
+  final ingestion = Ingestion();
 
   // Observable list of posts
   var profileData = {}.obs;
@@ -77,6 +79,26 @@ class HomeController extends GetxController {
         'like_count': 0,
         'comment_count': 0,
       });
+
+      // Ingestion Start
+      try {
+        final resp = await ingestion.ingest(
+          description: description,
+          metadata: {'uploaderId': user.id, 'source': 'Thread'},
+        );
+
+        if (!resp.allowed) {
+          Get.snackbar(
+            'Ingestion Not Allowed',
+            resp.reason ?? 'Blocked by moderation.',
+          );
+        } else {
+          Get.snackbar('Ingestion Succeed', 'Post has been ingested.');
+        }
+      } catch (e) {
+        print('⚠️ Error Ingestion: $e');
+      }
+      // Ingestion End
 
       await fetchPosts();
     } catch (e) {
