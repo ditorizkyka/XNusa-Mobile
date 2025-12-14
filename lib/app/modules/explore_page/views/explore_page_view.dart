@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
+// import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 import '../controllers/explore_page_controller.dart';
 
 class ExplorePageView extends GetView<ExplorePageController> {

@@ -50,8 +50,8 @@ dependencies:
   web_socket_channel: ^3.0.3
   flutter_markdown: ^0.7.7+1
   flutter_dotenv: ^6.0.0
-  ar_flutter_plugin: ^0.7.3
-  permission_handler: ^10.1.0
+  # ar_flutter_plugin: ^0.7.3
+  permission_handler: ^11.0.1
   http: ^1.6.0
 
 dev_dependencies:

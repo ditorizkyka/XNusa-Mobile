@@ -21,9 +21,16 @@ class MessagePageController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _connectAndListen();
-    startNewConversation();
+    // _connectAndListen();
+    // startNewConversation();
     scrollController.addListener(_autoScroll);
+  }
+
+  @override
+  void onReady() async {
+    super.onReady();
+    await _connectAndListen();
+    startNewConversation();
   }
 
   @override
@@ -58,8 +65,14 @@ class MessagePageController extends GetxController {
     );
   }
 
-  void _connectAndListen() {
-    _websocket.connect();
+  Future<void> _connectAndListen() async {
+    bool success = await _websocket.connect();
+
+    if (!success) {
+      isLoading.value = false;
+      Get.snackbar("Connection failed", "Can't connect to the server.");
+      return;
+    }
 
     _websocket.messagesStream.listen(
       (rawMessage) {
@@ -72,7 +85,7 @@ class MessagePageController extends GetxController {
         }
       },
       onError: (error) {
-        print("WS Stream Error: $error");
+        print("WS Error: $error");
         // Opt: Handle Reconnect
       },
       onDone: () {
@@ -154,6 +167,7 @@ class MessagePageController extends GetxController {
   // ACTION
   // Start new conversation.
   void startNewConversation() {
+    isLoading = false.obs;
     chatMessages.clear();
     currentConversationId.value = "";
     _websocket.sendRequest(ChatRequest(action: "NEW_CONVERSATION"));
