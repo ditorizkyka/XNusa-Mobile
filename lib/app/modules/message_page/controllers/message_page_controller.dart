@@ -86,11 +86,14 @@ class MessagePageController extends GetxController {
         }
       },
       onError: (error) {
-        print("WS Error: $error");
+        _websocket.resetChannel();
+        print("WS: Error ($error)");
         // Opt: Handle Reconnect
       },
       onDone: () {
-        print("WS Closed");
+        _websocket.resetChannel();
+        _setStatus("Connection closed.");
+        print("WS: Closed");
       },
     );
   }
@@ -123,7 +126,7 @@ class MessagePageController extends GetxController {
         break;
 
       case 'STATUS':
-        _receiveStatus(chatEvent.text ?? "");
+        _setStatus(chatEvent.text ?? "");
         break;
 
       case 'ERROR':
@@ -161,16 +164,23 @@ class MessagePageController extends GetxController {
     isLoading.value = false;
   }
 
-  void _receiveStatus(String status) {
+  void _setStatus(String status) {
     eventStatus.value = status.trim();
   }
 
   // ACTION
   // Start new conversation.
-  void startNewConversation() {
+  void startNewConversation() async {
+    if (!_websocket.isConnected) {
+      print("WS: Reconnecting...");
+      await _connectAndListen();
+      if (!_websocket.isConnected) return;
+    }
+
     isLoading = false.obs;
     chatMessages.clear();
     currentConversationId.value = "";
+    eventStatus.value = "";
     _websocket.sendRequest(ChatRequest(action: "NEW_CONVERSATION"));
   }
 

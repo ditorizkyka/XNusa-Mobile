@@ -32,7 +32,7 @@ class MessagePageView extends GetView<MessagePageController> {
             child: Obx(() {
               return ListView(
                 controller: controller.scrollController,
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: EdgeInsets.zero,
                 children: [
                   ...controller.chatMessages.map(
                     (message) => ChatBubble(
@@ -70,75 +70,84 @@ class MessagePageView extends GetView<MessagePageController> {
                         ),
                       ),
                     ),
+                  const SizedBox(height: 10),
                 ],
               );
             }),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Obx(() {
-                    bool isReady =
-                        controller.currentConversationId.value.isNotEmpty;
+        ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: ColorApp.white,
+        surfaceTintColor: ColorApp.white,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: Obx(() {
+                  bool isReady =
+                      controller.currentConversationId.value.isNotEmpty;
 
-                    return TextField(
-                      controller: controller.textController,
-                      enabled: isReady,
-                      decoration: InputDecoration(
-                        hintText: isReady ? 'Ask anything..' : 'Connecting...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(
-                            color: ColorApp.primary,
-                            width: 1.0,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                  return TextField(
+                    controller: controller.textController,
+                    enabled: isReady,
+                    cursorColor: ColorApp.black,
+                    decoration: InputDecoration(
+                      hintText: isReady ? 'Ask anything..' : 'Connecting...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(
+                          color: ColorApp.primary,
+                          width: 1.0,
                         ),
                       ),
-                      onSubmitted: (value) {
-                        controller.sendMessage();
-                      },
-                    );
-                  }),
-                ),
-                const SizedBox(width: 8),
-                Obx(
-                  () =>
-                      controller.isLoading.value
-                          ? const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                    ),
+                    onSubmitted: (value) {
+                      controller.sendMessage();
+                    },
+                  );
+                }),
+              ),
+              const SizedBox(width: 8),
+              Obx(
+                () =>
+                    controller.isLoading.value
+                        ? const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: ColorApp.primary,
+                              strokeWidth: 2,
                             ),
-                          )
-                          : FloatingActionButton(
-                            mini: true,
-                            foregroundColor: ColorApp.primary,
-                            hoverColor: ColorApp.lightGrey,
-                            onPressed:
-                                controller.currentConversationId.value.isEmpty
-                                    ? null
-                                    : () {
-                                      controller.sendMessage();
-                                    },
-                            backgroundColor: ColorApp.white,
-                            child: const Icon(Icons.send),
                           ),
-                ),
-              ],
-            ),
+                        )
+                        : FloatingActionButton(
+                          mini: true,
+                          foregroundColor: ColorApp.white,
+                          hoverColor: ColorApp.lightGrey,
+                          onPressed:
+                              controller.currentConversationId.value.isEmpty
+                                  ? null
+                                  : () {
+                                    controller.sendMessage();
+                                  },
+                          backgroundColor: ColorApp.primary,
+                          child: const Icon(Icons.send),
+                        ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

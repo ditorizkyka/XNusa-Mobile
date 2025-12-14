@@ -3,7 +3,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 import 'package:xnusa_mobile/app/modules/message_page/models/chat_model.dart';
-import 'package:web_socket_channel/io.dart';
 
 class Websocket {
   WebSocketChannel? _channel;
@@ -12,25 +11,29 @@ class Websocket {
 
   Future<bool> connect() async {
     try {
-      _channel = IOWebSocketChannel.connect(Uri.parse(_wsUrl));
+      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
       print("WS: Attempting to connect...");
       await _channel!.ready;
       print("WS: Connected");
       return true;
     } catch (e) {
-      print("WS Error: $e");
+      print("WS: Error ($e)");
       _channel = null;
       return false;
     }
   }
 
+  void resetChannel() {
+    _channel = null;
+  }
+
   void sendRequest(ChatRequest request) {
     if (_channel != null) {
       final jsonString = jsonEncode(request.toJson());
-      print("WS Sending: $jsonString");
+      print("WS: Sending $jsonString");
       _channel!.sink.add(jsonString);
     } else {
-      print("WS Error: Channel is null");
+      print("WS: Error (Channel is null)");
     }
   }
 
