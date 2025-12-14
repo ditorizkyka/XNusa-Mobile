@@ -21,8 +21,6 @@ class MessagePageController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // _connectAndListen();
-    // startNewConversation();
     scrollController.addListener(_autoScroll);
   }
 
@@ -70,7 +68,10 @@ class MessagePageController extends GetxController {
 
     if (!success) {
       isLoading.value = false;
-      Get.snackbar("Connection failed", "Can't connect to the server.");
+      Get.snackbar(
+        "Websocket connection failed",
+        "Can't connect to the server.",
+      );
       return;
     }
 

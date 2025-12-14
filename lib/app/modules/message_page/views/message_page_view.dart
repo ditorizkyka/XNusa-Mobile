@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
-import 'package:xnusa_mobile/constant/themes/colors.dart';
 import '../controllers/message_page_controller.dart';
 import '../widgets/chat_bubble.dart';
 
