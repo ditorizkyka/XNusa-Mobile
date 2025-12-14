@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:xnusa_mobile/constant/constant.dart';
+import 'package:xnusa_mobile/constant/themes/colors.dart';
 import '../controllers/message_page_controller.dart';
 import '../widgets/chat_bubble.dart';
 
@@ -9,8 +11,11 @@ class MessagePageView extends GetView<MessagePageController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ColorApp.white,
       appBar: AppBar(
-        title: const Text('NusaAI'),
+        backgroundColor: ColorApp.white,
+        surfaceTintColor: ColorApp.white,
+        title: Text('NusaAI', style: TypographyApp.chatHeadline1),
         centerTitle: true,
         actions: [
           IconButton(
@@ -40,25 +45,30 @@ class MessagePageView extends GetView<MessagePageController> {
 
                   // Status
                   if (controller.eventStatus.value.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 6,
-                        horizontal: 16,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              controller.eventStatus.value,
-                              style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                                color: Colors.grey,
+                    Container(
+                      alignment: Alignment.topCenter,
+                      width: double.infinity,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 720),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  controller.eventStatus.value,
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                 ],
@@ -81,6 +91,13 @@ class MessagePageView extends GetView<MessagePageController> {
                         hintText: isReady ? 'Ask anything..' : 'Connecting...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide(
+                            color: ColorApp.primary,
+                            width: 1.0,
+                          ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -107,16 +124,15 @@ class MessagePageView extends GetView<MessagePageController> {
                           )
                           : FloatingActionButton(
                             mini: true,
+                            foregroundColor: ColorApp.primary,
+                            hoverColor: ColorApp.lightGrey,
                             onPressed:
                                 controller.currentConversationId.value.isEmpty
                                     ? null
                                     : () {
                                       controller.sendMessage();
                                     },
-                            backgroundColor:
-                                controller.currentConversationId.value.isEmpty
-                                    ? Colors.grey
-                                    : null,
+                            backgroundColor: ColorApp.white,
                             child: const Icon(Icons.send),
                           ),
                 ),
