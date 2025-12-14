@@ -25,31 +25,49 @@ class MessagePageView extends GetView<MessagePageController> {
       body: Column(
         children: [
           Expanded(
-            child: Obx(
-              () => ListView.builder(
+            child: Obx(() {
+              return ListView(
+                controller: controller.scrollController,
                 padding: const EdgeInsets.only(bottom: 10),
-                controller:
-                    ScrollController()..addListener(() {
-                      if (controller.chatMessages.isNotEmpty &&
-                          controller.chatMessages.last.isStreaming &&
-                          (ScrollController().position.pixels ==
-                              ScrollController().position.maxScrollExtent)) {
-                        ScrollController().jumpTo(
-                          ScrollController().position.maxScrollExtent,
-                        );
-                      }
-                    }),
-                itemCount: controller.chatMessages.length,
-                itemBuilder: (context, index) {
-                  final message = controller.chatMessages[index];
-                  return ChatBubble(
-                    message: message.content,
-                    isUser: message.isUser,
-                    isStreaming: message.isStreaming,
-                  );
-                },
-              ),
-            ),
+                children: [
+                  ...controller.chatMessages.map(
+                    (message) => ChatBubble(
+                      message: message.content,
+                      isUser: message.isUser,
+                      isStreaming: message.isStreaming,
+                    ),
+                  ),
+
+                  // Status
+                  if (controller.eventStatus.value.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 16,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CircleAvatar(
+                            radius: 14,
+                            child: Icon(Icons.smart_toy, size: 16),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              controller.eventStatus.value,
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              );
+            }),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),

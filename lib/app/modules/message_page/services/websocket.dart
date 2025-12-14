@@ -6,7 +6,7 @@ import 'package:xnusa_mobile/app/modules/message_page/models/chat_model.dart';
 
 class Websocket {
   WebSocketChannel? _channel;
-  final String _wsUrl = 'ws://327301e81fe7.ngrok-free.app/nusaai/api/ws/chat';
+  final String _wsUrl = dotenv.env['WS_URL'] ?? '';
 
   void connect() {
     try {
