@@ -48,10 +48,6 @@ class MessagePageView extends GetView<MessagePageController> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const CircleAvatar(
-                            radius: 14,
-                            child: Icon(Icons.smart_toy, size: 16),
-                          ),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
