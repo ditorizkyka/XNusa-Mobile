@@ -8,10 +8,13 @@ class MessagePageController extends GetxController {
   final Websocket _websocket = Websocket();
 
   final TextEditingController textController = TextEditingController();
+  final scrollController = ScrollController();
 
   var chatMessages = <ChatMessage>[].obs;
   var currentConversationId = "".obs;
   var isLoading = false.obs;
+  var eventStatus = "".obs;
+  var autoScrollEnabled = true.obs;
 
   bool get isReady => currentConversationId.value.isNotEmpty;
 
@@ -20,13 +23,39 @@ class MessagePageController extends GetxController {
     super.onInit();
     _connectAndListen();
     startNewConversation();
+    scrollController.addListener(_autoScroll);
   }
 
   @override
   void onClose() {
     _websocket.disconnect();
     textController.dispose();
+    scrollController.dispose();
     super.onClose();
+  }
+
+  void _autoScroll() {
+    if (!scrollController.hasClients) return;
+
+    final position = scrollController.position;
+
+    if (position.pixels < position.maxScrollExtent - 50) {
+      autoScrollEnabled.value = false;
+      return;
+    }
+
+    autoScrollEnabled.value = true;
+  }
+
+  void smoothScrollToBottom() {
+    if (!scrollController.hasClients) return;
+    if (!autoScrollEnabled.value) return;
+
+    scrollController.animateTo(
+      scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 1),
+      curve: Curves.easeOut,
+    );
   }
 
   void _connectAndListen() {
@@ -79,6 +108,10 @@ class MessagePageController extends GetxController {
         _finalizeMessage();
         break;
 
+      case 'STATUS':
+        _receiveStatus(chatEvent.text ?? "");
+        break;
+
       case 'ERROR':
         Get.snackbar("Error", chatEvent.text ?? "Unknown error");
         isLoading.value = false;
@@ -93,6 +126,7 @@ class MessagePageController extends GetxController {
   void _appendToken(String token) {
     if (chatMessages.isEmpty || chatMessages.last.isUser) {
       // If the last message was from user or empty.
+      eventStatus.value = "";
       chatMessages.add(
         ChatMessage(content: token, isUser: false, isStreaming: true),
       );
@@ -102,6 +136,7 @@ class MessagePageController extends GetxController {
       lastMsg.content += token;
       chatMessages.refresh();
     }
+    Future.delayed(const Duration(milliseconds: 1), smoothScrollToBottom);
   }
 
   void _finalizeMessage() {
@@ -110,6 +145,10 @@ class MessagePageController extends GetxController {
       chatMessages.refresh();
     }
     isLoading.value = false;
+  }
+
+  void _receiveStatus(String status) {
+    eventStatus.value = status.trim();
   }
 
   // ACTION
