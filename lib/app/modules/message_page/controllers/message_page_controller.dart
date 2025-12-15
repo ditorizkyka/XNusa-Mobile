@@ -8,17 +8,26 @@ class MessagePageController extends GetxController {
   final Websocket _websocket = Websocket();
 
   final TextEditingController textController = TextEditingController();
+  final scrollController = ScrollController();
 
   var chatMessages = <ChatMessage>[].obs;
   var currentConversationId = "".obs;
   var isLoading = false.obs;
+  var eventStatus = "".obs;
+  var autoScrollEnabled = true.obs;
 
   bool get isReady => currentConversationId.value.isNotEmpty;
 
   @override
   void onInit() {
     super.onInit();
-    _connectAndListen();
+    scrollController.addListener(_autoScroll);
+  }
+
+  @override
+  void onReady() async {
+    super.onReady();
+    await _connectAndListen();
     startNewConversation();
   }
 
@@ -26,11 +35,45 @@ class MessagePageController extends GetxController {
   void onClose() {
     _websocket.disconnect();
     textController.dispose();
+    scrollController.dispose();
     super.onClose();
   }
 
-  void _connectAndListen() {
-    _websocket.connect();
+  void _autoScroll() {
+    if (!scrollController.hasClients) return;
+
+    final position = scrollController.position;
+
+    if (position.pixels < position.maxScrollExtent - 50) {
+      autoScrollEnabled.value = false;
+      return;
+    }
+
+    autoScrollEnabled.value = true;
+  }
+
+  void smoothScrollToBottom() {
+    if (!scrollController.hasClients) return;
+    if (!autoScrollEnabled.value) return;
+
+    scrollController.animateTo(
+      scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 1),
+      curve: Curves.easeOut,
+    );
+  }
+
+  Future<void> _connectAndListen() async {
+    bool success = await _websocket.connect();
+
+    if (!success) {
+      isLoading.value = false;
+      Get.snackbar(
+        "Websocket connection failed",
+        "Can't connect to the server.",
+      );
+      return;
+    }
 
     _websocket.messagesStream.listen(
       (rawMessage) {
@@ -43,11 +86,14 @@ class MessagePageController extends GetxController {
         }
       },
       onError: (error) {
-        print("WS Stream Error: $error");
+        _websocket.resetChannel();
+        print("WS: Error ($error)");
         // Opt: Handle Reconnect
       },
       onDone: () {
-        print("WS Closed");
+        _websocket.resetChannel();
+        _setStatus("Connection closed.");
+        print("WS: Closed");
       },
     );
   }
@@ -79,6 +125,10 @@ class MessagePageController extends GetxController {
         _finalizeMessage();
         break;
 
+      case 'STATUS':
+        _setStatus(chatEvent.text ?? "");
+        break;
+
       case 'ERROR':
         Get.snackbar("Error", chatEvent.text ?? "Unknown error");
         isLoading.value = false;
@@ -93,6 +143,7 @@ class MessagePageController extends GetxController {
   void _appendToken(String token) {
     if (chatMessages.isEmpty || chatMessages.last.isUser) {
       // If the last message was from user or empty.
+      eventStatus.value = "";
       chatMessages.add(
         ChatMessage(content: token, isUser: false, isStreaming: true),
       );
@@ -102,6 +153,7 @@ class MessagePageController extends GetxController {
       lastMsg.content += token;
       chatMessages.refresh();
     }
+    Future.delayed(const Duration(milliseconds: 1), smoothScrollToBottom);
   }
 
   void _finalizeMessage() {
@@ -112,11 +164,23 @@ class MessagePageController extends GetxController {
     isLoading.value = false;
   }
 
+  void _setStatus(String status) {
+    eventStatus.value = status.trim();
+  }
+
   // ACTION
   // Start new conversation.
-  void startNewConversation() {
+  void startNewConversation() async {
+    if (!_websocket.isConnected) {
+      print("WS: Reconnecting...");
+      await _connectAndListen();
+      if (!_websocket.isConnected) return;
+    }
+
+    isLoading = false.obs;
     chatMessages.clear();
     currentConversationId.value = "";
+    eventStatus.value = "";
     _websocket.sendRequest(ChatRequest(action: "NEW_CONVERSATION"));
   }
 

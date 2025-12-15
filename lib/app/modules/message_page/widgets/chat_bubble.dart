@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:xnusa_mobile/constant/constant.dart';
+import 'package:xnusa_mobile/constant/themes/colors.dart';
 
 class ChatBubble extends StatelessWidget {
   final String message;
@@ -15,25 +17,38 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color textColor = isUser ? Colors.white : Colors.black87;
-
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.85,
-        ),
-        decoration: BoxDecoration(
-          color: isUser ? Colors.blueAccent : Colors.grey[300],
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: isUser ? const Radius.circular(16) : Radius.zero,
-            bottomRight: isUser ? Radius.zero : const Radius.circular(16),
+    if (isUser) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.85,
+          ),
+          decoration: BoxDecoration(
+            color: ColorApp.primary,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: isUser ? const Radius.circular(16) : Radius.zero,
+              bottomRight: isUser ? Radius.zero : const Radius.circular(16),
+            ),
+          ),
+          child: Text(
+            message,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
           ),
         ),
+      );
+    }
+
+    return Container(
+      alignment: Alignment.topCenter,
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -41,78 +56,85 @@ class ChatBubble extends StatelessWidget {
               data: message,
               selectable: true,
               styleSheet: MarkdownStyleSheet(
+                //Divider
+                horizontalRuleDecoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: ColorApp.primary, width: 1.0),
+                  ),
+                ),
+
                 // Paragraph
-                p: TextStyle(fontSize: 15, height: 1.4, color: textColor),
+                p: TypographyApp.chatTextDark,
+                pPadding: const EdgeInsets.only(bottom: 1),
 
-                // Header
-                h1: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                ),
-                h2: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-                h3: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+                // Headers
+                h1: TypographyApp.chatHeadline1,
+                h1Padding: const EdgeInsets.only(top: 20, bottom: 12),
 
-                // List Item (Bullet points)
-                listBullet: TextStyle(color: textColor),
+                h2: TypographyApp.chatHeadline2,
+                h2Padding: const EdgeInsets.only(bottom: 10),
+
+                h3: TypographyApp.chatHeadline3,
+                h3Padding: const EdgeInsets.only(bottom: 8),
+
+                // List
+                listBullet: const TextStyle(fontSize: 16),
+                listIndent: 24,
+                listBulletPadding: const EdgeInsets.only(bottom: 6),
 
                 // Code Block
-                code: TextStyle(
-                  color: isUser ? Colors.white : Colors.black,
-                  backgroundColor: isUser ? Colors.white24 : Colors.grey[300],
+                code: const TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 14,
+                  color: Color.fromARGB(255, 92, 201, 65),
                 ),
                 codeblockDecoration: BoxDecoration(
-                  color: isUser ? Colors.black26 : Colors.grey[200],
+                  color: const Color(0xFF2D2D2D),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade400),
+                ),
+                codeblockPadding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 14,
                 ),
 
-                // Quote
-                blockquote: TextStyle(color: textColor.withOpacity(0.8)),
+                // Blockquote
+                blockquote: TextStyle(
+                  color: Colors.grey.shade800,
+                  fontStyle: FontStyle.italic,
+                ),
+                blockquotePadding: const EdgeInsets.symmetric(
+                  vertical: 4,
+                  horizontal: 12,
+                ),
                 blockquoteDecoration: BoxDecoration(
-                  border: Border(left: BorderSide(color: textColor, width: 4)),
+                  border: Border(
+                    left: BorderSide(color: Colors.grey.shade400, width: 4),
+                  ),
                 ),
               ),
-
-              // Link
-              onTapLink: (text, href, title) {
-                print("User tapped link: $href");
-              },
             ),
 
             if (isStreaming)
               Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: const EdgeInsets.only(top: 10.0),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+                  children: const [
                     SizedBox(
                       width: 12,
                       height: 12,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          isUser ? Colors.white70 : Colors.grey,
-                        ),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
-                      "...",
+                      "answering…",
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         fontStyle: FontStyle.italic,
-                        color: textColor.withOpacity(0.7),
+                        color: Colors.grey,
                       ),
                     ),
                   ],
