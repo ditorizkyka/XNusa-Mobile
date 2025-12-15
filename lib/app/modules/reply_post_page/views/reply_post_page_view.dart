@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:xnusa_mobile/app/data/models/post_model.dart';
-import 'package:xnusa_mobile/app/modules/dashboard/controllers/dashboard_controller.dart';
 import 'package:xnusa_mobile/app/modules/dashboard/views/dashboard_view.dart';
-import 'package:xnusa_mobile/app/modules/explore_page/views/explore_page_view.dart';
 import 'package:xnusa_mobile/app/modules/home/controllers/home_controller.dart';
-import 'package:xnusa_mobile/app/modules/home/views/home_view.dart';
-import 'package:xnusa_mobile/app/modules/message_page/views/message_page_view.dart';
-import 'package:xnusa_mobile/app/modules/profile_page/views/profile_page_view.dart';
-import 'package:xnusa_mobile/app/modules/search_page/views/search_page_view.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 import 'package:xnusa_mobile/widgets/user_reply.dart';
 
