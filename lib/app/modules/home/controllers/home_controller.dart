@@ -84,7 +84,7 @@ class HomeController extends GetxController {
       try {
         final resp = await ingestion.ingest(
           description: description,
-          metadata: {'uploaderId': user.id, 'source': 'Thread'},
+          metadata: {'user_id': user.id, 'source': 'post'},
         );
 
         if (!resp.allowed) {
