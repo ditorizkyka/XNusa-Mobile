@@ -4,6 +4,6 @@ import '../controllers/explore_page_controller.dart';
 class ExplorePageBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(ExplorePageController());
+    Get.lazyPut<ExplorePageController>(() => ExplorePageController());
   }
 }

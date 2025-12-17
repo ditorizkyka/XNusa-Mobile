@@ -6,24 +6,34 @@ import 'package:xnusa_mobile/app/modules/message_page/models/chat_model.dart';
 
 class Websocket {
   WebSocketChannel? _channel;
+  bool get isConnected => _channel != null;
   final String _wsUrl = dotenv.env['WS_URL'] ?? '';
 
-  void connect() {
+  Future<bool> connect() async {
     try {
       _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
+      print("WS: Attempting to connect...");
+      await _channel!.ready;
       print("WS: Connected");
+      return true;
     } catch (e) {
-      print("WS Error: $e");
+      print("WS: Error ($e)");
+      _channel = null;
+      return false;
     }
+  }
+
+  void resetChannel() {
+    _channel = null;
   }
 
   void sendRequest(ChatRequest request) {
     if (_channel != null) {
       final jsonString = jsonEncode(request.toJson());
-      print("WS Sending: $jsonString");
+      print("WS: Sending $jsonString");
       _channel!.sink.add(jsonString);
     } else {
-      print("WS Error: Channel is null");
+      print("WS: Error (Channel is null)");
     }
   }
 

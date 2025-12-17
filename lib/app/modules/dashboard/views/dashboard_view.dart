@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:xnusa_mobile/app/modules/explore_page/views/explore_page_view.dart';
 import 'package:xnusa_mobile/app/modules/home/controllers/home_controller.dart';
@@ -82,8 +83,23 @@ class DashboardNavBar extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildNavItem(
-                          Icons.home_outlined,
-                          Icons.home,
+                          Icon(
+                            Icons.home_outlined,
+                            size: 26,
+                            color:
+                                controller.selectedIndex.value == 3
+                                    ? ColorApp.primary
+                                    : Colors.grey[600],
+                          ),
+
+                          Icon(
+                            Icons.home,
+                            size: 26,
+                            color:
+                                controller.selectedIndex.value == 3
+                                    ? ColorApp.primary
+                                    : Colors.grey[600],
+                          ),
                           "Home",
                           0,
                           onTap: () {
@@ -91,8 +107,23 @@ class DashboardNavBar extends StatelessWidget {
                           },
                         ),
                         _buildNavItem(
-                          Icons.search,
-                          Icons.search,
+                          Icon(
+                            Icons.search,
+                            size: 26,
+                            color:
+                                controller.selectedIndex.value == 3
+                                    ? ColorApp.primary
+                                    : Colors.grey[600],
+                          ),
+
+                          Icon(
+                            Icons.search,
+                            size: 26,
+                            color:
+                                controller.selectedIndex.value == 3
+                                    ? ColorApp.primary
+                                    : Colors.grey[600],
+                          ),
                           "Search",
                           1,
                           onTap: () {
@@ -101,17 +132,48 @@ class DashboardNavBar extends StatelessWidget {
                         ),
                         const SizedBox(width: 60), // space tengah
                         _buildNavItem(
-                          Icons.message_outlined,
-                          Icons.message,
-                          "Messages",
+                          SvgPicture.asset(
+                            'assets/icons/chatbot_outlined.svg',
+                            width: 26,
+                            height: 26,
+                            color:
+                                controller.selectedIndex.value == 3
+                                    ? ColorApp.primary
+                                    : Colors.grey[600],
+                          ),
+                          SvgPicture.asset(
+                            'assets/icons/chatbot_filled.svg',
+                            width: 26,
+                            height: 26,
+                            color:
+                                controller.selectedIndex.value == 3
+                                    ? ColorApp.primary
+                                    : Colors.grey[600],
+                          ),
+                          "Chatbot",
                           3,
                           onTap: () {
                             controller.changeIndex(3);
                           },
                         ),
                         _buildNavItem(
-                          Icons.person_outline,
-                          Icons.person,
+                          Icon(
+                            Icons.person_outline,
+                            size: 26,
+                            color:
+                                controller.selectedIndex.value == 3
+                                    ? Colors.black
+                                    : Colors.grey[600],
+                          ),
+
+                          Icon(
+                            Icons.person,
+                            size: 26,
+                            color:
+                                controller.selectedIndex.value == 3
+                                    ? Colors.black
+                                    : Colors.grey[600],
+                          ),
                           "Profile",
                           4,
                           onTap: () {
@@ -138,8 +200,8 @@ class DashboardNavBar extends StatelessWidget {
   }
 
   Widget _buildNavItem(
-    IconData outlinedIcon,
-    IconData filledIcon,
+    Widget iconOutlined,
+    Widget filledIcon,
     String label,
     int index, {
     VoidCallback? onTap,
@@ -164,11 +226,7 @@ class DashboardNavBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isSelected ? filledIcon : outlinedIcon,
-              size: 26,
-              color: isSelected ? Colors.black : Colors.grey[600],
-            ),
+            isSelected ? filledIcon : iconOutlined,
             const SizedBox(height: 4),
             Text(
               label,

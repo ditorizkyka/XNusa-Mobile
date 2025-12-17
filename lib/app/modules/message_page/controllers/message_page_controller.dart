@@ -21,9 +21,14 @@ class MessagePageController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _connectAndListen();
-    startNewConversation();
     scrollController.addListener(_autoScroll);
+  }
+
+  @override
+  void onReady() async {
+    super.onReady();
+    await _connectAndListen();
+    startNewConversation();
   }
 
   @override
@@ -58,8 +63,17 @@ class MessagePageController extends GetxController {
     );
   }
 
-  void _connectAndListen() {
-    _websocket.connect();
+  Future<void> _connectAndListen() async {
+    bool success = await _websocket.connect();
+
+    if (!success) {
+      isLoading.value = false;
+      Get.snackbar(
+        "Websocket connection failed",
+        "Can't connect to the server.",
+      );
+      return;
+    }
 
     _websocket.messagesStream.listen(
       (rawMessage) {
@@ -72,11 +86,14 @@ class MessagePageController extends GetxController {
         }
       },
       onError: (error) {
-        print("WS Stream Error: $error");
+        _websocket.resetChannel();
+        print("WS: Error ($error)");
         // Opt: Handle Reconnect
       },
       onDone: () {
-        print("WS Closed");
+        _websocket.resetChannel();
+        _setStatus("Connection closed.");
+        print("WS: Closed");
       },
     );
   }
@@ -109,7 +126,7 @@ class MessagePageController extends GetxController {
         break;
 
       case 'STATUS':
-        _receiveStatus(chatEvent.text ?? "");
+        _setStatus(chatEvent.text ?? "");
         break;
 
       case 'ERROR':
@@ -147,15 +164,23 @@ class MessagePageController extends GetxController {
     isLoading.value = false;
   }
 
-  void _receiveStatus(String status) {
+  void _setStatus(String status) {
     eventStatus.value = status.trim();
   }
 
   // ACTION
   // Start new conversation.
-  void startNewConversation() {
+  void startNewConversation() async {
+    if (!_websocket.isConnected) {
+      print("WS: Reconnecting...");
+      await _connectAndListen();
+      if (!_websocket.isConnected) return;
+    }
+
+    isLoading = false.obs;
     chatMessages.clear();
     currentConversationId.value = "";
+    eventStatus.value = "";
     _websocket.sendRequest(ChatRequest(action: "NEW_CONVERSATION"));
   }
 
