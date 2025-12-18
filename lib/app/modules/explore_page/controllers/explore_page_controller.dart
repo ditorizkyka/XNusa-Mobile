@@ -1,13 +1,22 @@
+
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:xnusa_mobile/app/modules/explore_page/models/island_location.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 
 class ExplorePageController extends GetxController {
   final MapController mapController = MapController();
   final RxString selectedIsland = ''.obs;
+  final _baseUrl = dotenv.env['BASE_URL'] ?? '';
+
+  var dynamic_islands = <IslandLocation>[].obs;
+  var isLoading = true.obs;
 
   static const LatLng centerIndonesia = LatLng(-2.5489, 118.0149);
 
@@ -71,11 +80,12 @@ class ExplorePageController extends GetxController {
   ];
 
   List<Marker> buildMarkers() {
-    return islands.map((island) {
+    final allIslands = [...islands, ...dynamic_islands];
+    return allIslands.map((island) {
       return Marker(
         point: island.position,
         width: 80,
-        height: 80,
+        height: 90,
         child: GestureDetector(
           onTap: () => onMarkerTapped(island),
           child: Column(
@@ -128,6 +138,31 @@ class ExplorePageController extends GetxController {
         ),
       );
     }).toList();
+  }
+
+  Future<void> fetchDynamicIslands(String location) async {
+    try {
+      isLoading.value = true;
+
+      final response = await http.get(
+        Uri.parse('https://${_baseUrl}/nusaai/api/location'),
+        headers: {'Content-Type': 'application/json', 'LOCATION': location},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final location = IslandLocation.fromJson(data);
+        dynamic_islands.value = [location];
+        onMarkerTapped(dynamic_islands.first);
+      } else {
+        Get.snackbar("Error", "Failed to fetch data.");
+      }
+    } catch (e) {
+      print(e);
+      Get.snackbar("Error", "Failed to connect.");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void onMarkerTapped(IslandLocation island) {
@@ -472,20 +507,4 @@ class IslandBottomSheet extends GetView<ExplorePageController> {
       ),
     );
   }
-}
-
-class IslandLocation {
-  final String name;
-  final LatLng position;
-  final String description;
-  final String info;
-  final Color color;
-
-  IslandLocation({
-    required this.name,
-    required this.position,
-    required this.description,
-    required this.info,
-    required this.color,
-  });
 }

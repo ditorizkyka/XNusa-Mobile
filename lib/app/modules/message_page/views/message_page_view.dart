@@ -29,7 +29,9 @@ class MessagePageView extends GetView<MessagePageController> {
       body: Column(
         children: [
           Expanded(
-            child: Obx(() {
+            child:
+            // Message
+            Obx(() {
               return ListView(
                 controller: controller.scrollController,
                 padding: EdgeInsets.zero,
@@ -70,6 +72,66 @@ class MessagePageView extends GetView<MessagePageController> {
                         ),
                       ),
                     ),
+
+                  // Suggestion
+                  Obx(() {
+                    if (controller.suggestion.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      color: ColorApp.white.withOpacity(0.9),
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: InkWell(
+                          onTap: () => controller.onSuggestionClicked(),
+                          borderRadius: BorderRadius.circular(30),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: ColorApp.primary,
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(width: 8),
+                                Text(
+                                  controller.suggestion.value,
+                                  style: const TextStyle(
+                                    color: ColorApp.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.arrow_forward,
+                                  color: ColorApp.white,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 10),
                 ],
               );

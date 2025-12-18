@@ -7,11 +7,13 @@ import 'package:xnusa_mobile/app/modules/message_page/models/chat_model.dart';
 class Websocket {
   WebSocketChannel? _channel;
   bool get isConnected => _channel != null;
-  final String _wsUrl = dotenv.env['WS_URL'] ?? '';
+  final String _baseUrl = dotenv.env['BASE_URL'] ?? "";
 
   Future<bool> connect() async {
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
+      _channel = WebSocketChannel.connect(
+        Uri.parse("ws://${_baseUrl}/nusaai/api/ws/chat"),
+      );
       print("WS: Attempting to connect...");
       await _channel!.ready;
       print("WS: Connected");
