@@ -21,6 +21,8 @@ import '../modules/request_verified_page/bindings/request_verified_page_binding.
 import '../modules/request_verified_page/views/request_verified_page_view.dart';
 import '../modules/search_page/bindings/search_page_binding.dart';
 import '../modules/search_page/views/search_page_view.dart';
+import '../modules/visit_user_profile_page/bindings/visit_user_profile_page_binding.dart';
+import '../modules/visit_user_profile_page/views/visit_user_profile_page_view.dart';
 
 part 'app_routes.dart';
 
@@ -84,6 +86,12 @@ class AppPages {
       name: _Paths.REPLY_POST_PAGE,
       page: () => const ReplyPostPageView(),
       binding: ReplyPostPageBinding(),
+    ),
+
+    GetPage(
+      name: _Paths.VISIT_USER_PROFILE_PAGE,
+      page: () => const VisitUserProfileView(),
+      binding: VisitUserProfilePageBinding(),
     ),
   ];
 }

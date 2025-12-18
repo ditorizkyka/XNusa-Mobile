@@ -45,7 +45,6 @@ class SearchPageView extends GetView<SearchPageController> {
                         ),
                       ),
                       onChanged: (value) {
-                        // Bisa auto-search juga
                         controller.searchUser(value);
                       },
                     ),
@@ -104,76 +103,83 @@ class ResultSearch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeApp.w16,
-        vertical: SizeApp.h8,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundImage:
-                user['profile_image_url'] != null
-                    ? NetworkImage(user['profile_image_url'])
-                    : const AssetImage('assets/profile_placeholder.png')
-                        as ImageProvider,
-          ),
-          Gap.w12,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user['display_name'] ?? 'Tanpa Nama',
-                  style: TypographyApp.textLight.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: ColorApp.primary,
-                    fontSize: SizeApp.h12,
-                  ),
-                ),
-                Gap.h4,
-                Text(
-                  '@${user['username']}',
-                  style: TypographyApp.textLight.copyWith(
-                    fontSize: SizeApp.h12,
-                    color: ColorApp.grey,
-                  ),
-                ),
-              ],
+    return GestureDetector(
+      onTap: () {
+        // 🔥 Navigate ke halaman profil user dengan userId
+        Get.toNamed('/visit-user-profile-page', arguments: user['id']);
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeApp.w16,
+          vertical: SizeApp.h8,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundImage:
+                  user['profile_image_url'] != null
+                      ? NetworkImage(user['profile_image_url'])
+                      : const AssetImage('assets/profile_placeholder.png')
+                          as ImageProvider,
             ),
-          ),
-          GestureDetector(
-            onTap: () {
-              final controller = Get.find<SearchPageController>();
-              controller.toggleFollow(user['id']);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color:
-                    (user['is_followed'] ?? false)
-                        ? ColorApp.lightGrey
-                        : ColorApp.primary,
-                borderRadius: BorderRadius.circular(SizeApp.h8),
+            Gap.w12,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user['display_name'] ?? 'Tanpa Nama',
+                    style: TypographyApp.textLight.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: ColorApp.primary,
+                      fontSize: SizeApp.h12,
+                    ),
+                  ),
+                  Gap.h4,
+                  Text(
+                    '@${user['username']}',
+                    style: TypographyApp.textLight.copyWith(
+                      fontSize: SizeApp.h12,
+                      color: ColorApp.grey,
+                    ),
+                  ),
+                ],
               ),
-              padding: EdgeInsets.symmetric(
-                vertical: SizeApp.h4,
-                horizontal: SizeApp.w12,
-              ),
-              child: Text(
-                (user['is_followed'] ?? false) ? "Following" : "Follow",
-                style: TypographyApp.textLight.copyWith(
-                  fontSize: SizeApp.h12,
+            ),
+            GestureDetector(
+              onTap: () {
+                // Prevent navigation when clicking follow button
+                final controller = Get.find<SearchPageController>();
+                controller.toggleFollow(user['id']);
+              },
+              child: Container(
+                decoration: BoxDecoration(
                   color:
                       (user['is_followed'] ?? false)
-                          ? ColorApp.grey
-                          : ColorApp.white,
+                          ? ColorApp.lightGrey
+                          : ColorApp.primary,
+                  borderRadius: BorderRadius.circular(SizeApp.h8),
+                ),
+                padding: EdgeInsets.symmetric(
+                  vertical: SizeApp.h4,
+                  horizontal: SizeApp.w12,
+                ),
+                child: Text(
+                  (user['is_followed'] ?? false) ? "Following" : "Follow",
+                  style: TypographyApp.textLight.copyWith(
+                    fontSize: SizeApp.h12,
+                    color:
+                        (user['is_followed'] ?? false)
+                            ? ColorApp.grey
+                            : ColorApp.white,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -21,9 +21,6 @@ class DashboardView extends GetView<DashboardController> {
     final DashboardController dashboardController = Get.put(
       DashboardController(),
     );
-    final authHome = Get.put(HomeController());
-    final authSearch = Get.put(SearchPageController());
-    final authProfile = Get.put(ProfilePageController());
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -49,6 +46,9 @@ class DashboardNavBar extends StatelessWidget {
 
   final bool isSubPage;
   final DashboardController controller = Get.find<DashboardController>();
+  final authHome = Get.put(HomeController());
+  final authSearch = Get.put(SearchPageController());
+  final authProfile = Get.put(ProfilePageController());
   @override
   Widget build(BuildContext context) {
     return Obx(
@@ -103,6 +103,7 @@ class DashboardNavBar extends StatelessWidget {
                           "Home",
                           0,
                           onTap: () {
+                            authHome.fetchPosts();
                             controller.changeIndex(0);
                           },
                         ),
@@ -177,6 +178,7 @@ class DashboardNavBar extends StatelessWidget {
                           "Profile",
                           4,
                           onTap: () {
+                            authProfile.loadAllContent();
                             controller.changeIndex(4);
                           },
                         ),
