@@ -15,6 +15,8 @@ abstract class Routes {
   static const EDIT_PROFILE_PAGE = _Paths.EDIT_PROFILE_PAGE;
   static const REQUEST_VERIFIED_PAGE = _Paths.REQUEST_VERIFIED_PAGE;
   static const REPLY_POST_PAGE = _Paths.REPLY_POST_PAGE;
+
+  static const VISIT_USER_PROFILE_PAGE = _Paths.VISIT_USER_PROFILE_PAGE;
 }
 
 abstract class _Paths {
@@ -31,4 +33,6 @@ abstract class _Paths {
   static const EDIT_PROFILE_PAGE = '/edit-profile-page';
   static const REQUEST_VERIFIED_PAGE = '/request-verified-page';
   static const REPLY_POST_PAGE = '/reply-post-page';
+
+  static const VISIT_USER_PROFILE_PAGE = '/visit-user-profile-page';
 }

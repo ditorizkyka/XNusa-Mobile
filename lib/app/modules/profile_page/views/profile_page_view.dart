@@ -11,6 +11,12 @@ import '../controllers/profile_page_controller.dart';
 class ProfilePageView extends GetView<ProfilePageController> {
   const ProfilePageView({super.key});
 
+  // 🔹 Fungsi helper untuk truncate text
+  String truncateText(String text, int maxLength) {
+    if (text.length <= maxLength) return text;
+    return '${text.substring(0, maxLength)}...';
+  }
+
   @override
   Widget build(BuildContext context) {
     Get.lazyPut(() => ProfilePageController());
@@ -18,288 +24,297 @@ class ProfilePageView extends GetView<ProfilePageController> {
 
     return Scaffold(
       backgroundColor: ColorApp.white,
+      body: SafeArea(
+        child: Obx(() {
+          final data = controller.profileData;
 
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final data = controller.profileData;
-        return SafeArea(
-          child: DefaultTabController(
-            length: 2, // 👉 Threads & Replies
+          return DefaultTabController(
+            length: 2,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // ✅ AppBar custom
                 AppBarProfile(authC: authC),
 
-                // ✅ Bagian profil (foto, nama, bio, button)
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: SizeApp.h12,
-                    horizontal: SizeApp.w16,
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                data["display_name"] ?? "display_name",
-                                style: TypographyApp.headline1,
-                              ),
-                              Gap.h4,
-                              Row(
+                // ✅ Bagian profil
+                if (controller.isLoading.value)
+                  Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(color: ColorApp.primary),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: SizeApp.h12,
+                      horizontal: SizeApp.w16,
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  // 🔥 Display Name - max 20 char
                                   Text(
-                                    data["username"] ?? "username",
-                                    style: TypographyApp.label.copyWith(
-                                      color: ColorApp.primary,
-                                      fontSize: SizeApp.customHeight(10),
+                                    truncateText(
+                                      data["display_name"] ?? "display_name",
+                                      20,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                    style: TypographyApp.headline1,
                                   ),
-                                  Gap.w8,
-                                  GestureDetector(
-                                    onTap: () {
-                                      Clipboard.setData(
-                                        ClipboardData(
-                                          text: "xnusa/id/${data["username"]}",
+                                  Gap.h4,
+                                  Row(
+                                    children: [
+                                      // 🔥 Username - max 15 char
+                                      Flexible(
+                                        child: Text(
+                                          truncateText(
+                                            data["username"] ?? "username",
+                                            15,
+                                          ),
+                                          style: TypographyApp.label.copyWith(
+                                            color: ColorApp.primary,
+                                            fontSize: SizeApp.customHeight(10),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      );
-                                      Get.snackbar(
-                                        'Copied!',
-                                        'Profile URL copied to clipboard',
-                                        snackPosition: SnackPosition.BOTTOM,
-                                        duration: const Duration(seconds: 2),
-                                        margin: EdgeInsets.all(16),
-                                      );
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: SizeApp.w8,
-                                        vertical: SizeApp.h4,
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(20),
+                                      Gap.w8,
+                                      GestureDetector(
+                                        onTap: () {
+                                          Clipboard.setData(
+                                            ClipboardData(
+                                              text:
+                                                  "xnusa/id/${data["username"]}",
+                                            ),
+                                          );
+                                          Get.snackbar(
+                                            'Copied!',
+                                            'Profile URL copied to clipboard',
+                                            snackPosition: SnackPosition.BOTTOM,
+                                            duration: const Duration(
+                                              seconds: 2,
+                                            ),
+                                            margin: EdgeInsets.all(16),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: SizeApp.w8,
+                                            vertical: SizeApp.h4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.withOpacity(0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                "Copy Profile URL",
+                                                style: TypographyApp.textLight
+                                                    .copyWith(
+                                                      color: ColorApp.darkGrey,
+                                                      fontSize: SizeApp.h8,
+                                                    ),
+                                              ),
+                                              Gap.w4,
+                                              Icon(
+                                                Icons.copy_rounded,
+                                                size: SizeApp.h8,
+                                                color: ColorApp.darkGrey,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            "Copy Profile URL",
-                                            style: TypographyApp.textLight
-                                                .copyWith(
-                                                  color: ColorApp.darkGrey,
-                                                  fontSize: SizeApp.h8,
+                                    ],
+                                  ),
+                                  Gap.h12,
+                                  // 🔥 Bio - max 100 char, max 2 lines
+                                  if (data["bio"] != null &&
+                                      data["bio"].toString().isNotEmpty)
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          truncateText(data["bio"], 100),
+                                          style: TypographyApp.textLight
+                                              .copyWith(
+                                                color: ColorApp.darkGrey,
+                                                fontSize: SizeApp.customHeight(
+                                                  9,
                                                 ),
-                                          ),
-                                          Gap.w4,
-                                          Icon(
-                                            Icons.copy_rounded,
-                                            size: SizeApp.h8,
-                                            color: ColorApp.darkGrey,
-                                          ),
-                                        ],
+                                              ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Gap.h12,
+                                      ],
+                                    ),
+                                  FollowersRow(),
+                                ],
+                              ),
+                            ),
+                            Gap.w8,
+                            // Profile Avatar
+                            GestureDetector(
+                              onTap: () {
+                                controller.pickAndUploadProfileImage();
+                              },
+                              child: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: SizeApp.h36,
+                                    backgroundColor: ColorApp.grey,
+                                    backgroundImage:
+                                        (data["profile_image_url"] != null)
+                                            ? NetworkImage(
+                                              data["profile_image_url"],
+                                            )
+                                            : null,
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: ColorApp.primary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.camera_alt,
+                                        size: SizeApp.h12,
+                                        color: Colors.white,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              Gap.h12,
-                              if (data["bio"] != null &&
-                                  data["bio"].toString().isNotEmpty)
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: SizeApp.customWidth(240),
-                                      child: Text(
-                                        data["bio"],
-                                        style: TypographyApp.textLight.copyWith(
-                                          color: ColorApp.darkGrey,
-                                          fontSize: SizeApp.customHeight(9),
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        softWrap: true,
-                                      ),
+                            ),
+                          ],
+                        ),
+                        Gap.h16,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ButtonAppUnfilled(
+                                onTap: () {
+                                  Get.toNamed('/edit-profile-page');
+                                },
+                                title: "Edit Profile",
+                              ),
+                            ),
+                            Gap.w12,
+                            Expanded(
+                              child: ButtonAppUnfilled(
+                                onTap: () async {
+                                  showChooseButtonDialog(
+                                    title: "Sign out from this account?",
+                                    description:
+                                        "Are you sure you want to log out? You can always log back in later.",
+                                    onDiscard: () => Get.back(),
+                                    onSave: () async {
+                                      await authC.signOut();
+                                      Get.offAllNamed('/signin');
+                                    },
+                                    cancelText: "Cancel",
+                                    confirmText: "Sign Out",
+                                  );
+                                },
+                                title: "Sign Out",
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // ✅ TabBar (hanya tampil jika tidak loading)
+                if (!controller.isLoading.value)
+                  TabBar(
+                    indicatorColor: ColorApp.primary,
+                    labelColor: ColorApp.primary,
+                    unselectedLabelColor: Colors.grey,
+                    tabs: const [Tab(text: "Threads"), Tab(text: "Likes")],
+                  ),
+
+                // ✅ TabBarView (hanya tampil jika tidak loading)
+                if (!controller.isLoading.value)
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        // Tab 1 → Threads user
+                        Obx(() {
+                          if (controller.isLoading.value) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          if (controller.userPosts.isEmpty) {
+                            return const Center(child: Text("Belum ada Post."));
+                          }
+                          return ListView.builder(
+                            itemCount: controller.userPosts.length,
+                            itemBuilder: (context, index) {
+                              final post = controller.userPosts[index];
+                              return UserPost(
+                                post: post,
+                                onTap:
+                                    () => controller.toggleLike(
+                                      controller.userPosts[index],
+                                      controller.userPosts,
                                     ),
-                                    Gap.h12,
-                                  ],
-                                ),
-                              FollowersRow(),
-                            ],
-                          ),
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () {
-                              controller.pickAndUploadProfileImage();
+                              );
                             },
-                            child: Stack(
-                              children: [
-                                CircleAvatar(
-                                  radius: SizeApp.h36,
-                                  backgroundColor: ColorApp.grey,
-                                  backgroundImage:
-                                      (data["profile_image_url"] != null)
-                                          ? NetworkImage(
-                                            data["profile_image_url"],
-                                          )
-                                          : null,
-                                ),
-
-                                // 👉 Icon kamera / edit
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: ColorApp.primary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.camera_alt,
-                                      size: SizeApp.h12,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Gap.h16,
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ButtonAppUnfilled(
-                              onTap: () {
-                                Get.toNamed('/edit-profile-page');
-                              },
-                              title: "Edit Profile",
-                            ),
-                          ),
-                          Gap.w12,
-                          Expanded(
-                            child: ButtonAppUnfilled(
-                              onTap: () async {
-                                showChooseButtonDialog(
-                                  title: "Sign out from this account?",
-                                  description:
-                                      "Are you sure you want to log out? You can always log back in later.",
-                                  onDiscard: () => Get.back(),
-                                  onSave: () async {
-                                    await authC.signOut();
-                                    Get.offAllNamed('/signin');
-                                  },
-                                  cancelText: "Cancel",
-                                  confirmText: "Sign Out",
-                                );
-                              },
-                              title: "Sign Out",
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // ✅ Tambahkan tab Threads dan Replies
-                TabBar(
-                  indicatorColor: ColorApp.primary,
-                  labelColor: ColorApp.primary,
-                  unselectedLabelColor: Colors.grey,
-                  tabs: const [Tab(text: "Threads"), Tab(text: "Likes")],
-                ),
-
-                // ✅ Isi tab-nya: Threads dan Replies
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      // // Tab 1 → Threads user
-                      Obx(() {
-                        if (controller.isLoading.value) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
                           );
-                        }
-                        if (controller.userPosts.isEmpty) {
-                          return const Center(child: Text("Belum ada Post."));
-                        }
-                        return ListView.builder(
-                          itemCount: controller.userPosts.length,
-                          itemBuilder: (context, index) {
-                            final post = controller.userPosts[index];
-                            return UserPost(
-                              post: post,
-                              onTap:
-                                  () => controller.toggleLike(
-                                    controller.userPosts[index],
-                                    controller.userPosts,
-                                  ),
+                        }),
+
+                        // Tab 2 → Likes user
+                        Obx(() {
+                          if (controller.isLoading.value) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
                             );
-                          },
-                        );
-                      }),
-                      Obx(() {
-                        if (controller.isLoading.value) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
+                          }
+                          if (controller.userLikes.isEmpty) {
+                            return const Center(
+                              child: Text("Belum ada Likes."),
+                            );
+                          }
+                          return ListView.builder(
+                            itemCount: controller.userLikes.length,
+                            itemBuilder: (context, index) {
+                              final likes = controller.userLikes[index];
+                              return UserPost(
+                                post: likes,
+                                onTap:
+                                    () => controller.toggleLike(
+                                      controller.userLikes[index],
+                                      controller.userLikes,
+                                    ),
+                              );
+                            },
                           );
-                        }
-                        if (controller.userLikes.isEmpty) {
-                          return const Center(child: Text("Belum ada Likes."));
-                        }
-                        return ListView.builder(
-                          itemCount: controller.userLikes.length,
-                          itemBuilder: (context, index) {
-                            final likes = controller.userLikes[index];
-
-                            return UserPost(
-                              post: likes,
-                              onTap:
-                                  () => controller.toggleLike(
-                                    controller.userLikes[index],
-                                    controller.userLikes,
-                                  ),
-                            );
-                          },
-                        );
-                      }),
-
-                      // // Tab 2 → Replies user
-                      // Obx(() {
-                      //   if (controller.isLoading.value) {
-                      //     return const Center(child: CircularProgressIndicator());
-                      //   }
-                      //   if (controller.userReplies.isEmpty) {
-                      //     return const Center(child: Text("Belum ada replies."));
-                      //   }
-                      //   return ListView.builder(
-                      //     itemCount: controller.userReplies.length,
-                      //     itemBuilder: (context, index) {
-                      //       final reply = controller.userReplies[index];
-                      //       return ReplyCard(reply: reply);
-                      //     },
-                      //   );
-                      // }),
-                    ],
+                        }),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 }
@@ -412,7 +427,6 @@ class FollowersRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        // Text info
         const Text(
           '412 k followers',
           style: TextStyle(
@@ -422,7 +436,6 @@ class FollowersRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        // Icon copy URL
         GestureDetector(
           onTap: () {
             Clipboard.setData(ClipboardData(text: profileUrl));

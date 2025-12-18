@@ -14,9 +14,7 @@ class SocialMediaOptionAuth extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         InkWell(
-          onTap: () {
-            print("Login with Facebook");
-          },
+          onTap: () => authC.signInWithX(),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(12),
@@ -58,9 +56,7 @@ class SocialMediaOptionAuth extends StatelessWidget {
 
         const SizedBox(width: 16),
         InkWell(
-          onTap: () {
-            print("Login with Apple");
-          },
+          onTap: () => authC.signInWithMicrosoft(),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(12),

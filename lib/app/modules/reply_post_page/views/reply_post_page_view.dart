@@ -21,7 +21,7 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
 
     return Scaffold(
       backgroundColor: ColorApp.white,
-      bottomNavigationBar: DashboardNavBar(isSubPage: true),
+      // bottomNavigationBar: DashboardNavBar(isSubPage: true),
       body: SafeArea(
         child: Column(
           children: [
