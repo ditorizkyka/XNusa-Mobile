@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:xnusa_mobile/app/modules/dashboard/controllers/dashboard_controller.dart';
+import 'package:xnusa_mobile/app/modules/explore_page/controllers/explore_page_controller.dart';
+import 'package:xnusa_mobile/app/modules/explore_page/models/island_location.dart';
 import '../services/websocket.dart';
 import '../models/chat_model.dart';
 
@@ -15,6 +18,9 @@ class MessagePageController extends GetxController {
   var isLoading = false.obs;
   var eventStatus = "".obs;
   var autoScrollEnabled = true.obs;
+
+  var suggestion = "".obs;
+  VoidCallback? suggestionAction;
 
   bool get isReady => currentConversationId.value.isNotEmpty;
 
@@ -52,7 +58,7 @@ class MessagePageController extends GetxController {
     autoScrollEnabled.value = true;
   }
 
-  void smoothScrollToBottom() {
+  void _smoothScrollToBottom() {
     if (!scrollController.hasClients) return;
     if (!autoScrollEnabled.value) return;
 
@@ -129,6 +135,11 @@ class MessagePageController extends GetxController {
         _setStatus(chatEvent.text ?? "");
         break;
 
+      case 'LOCATION':
+        String suggestionText = "See ${chatEvent.text}";
+        _showSuggestion(suggestionText, () {
+          _navigateToExplore(chatEvent.text!);
+        });
       case 'ERROR':
         Get.snackbar("Error", chatEvent.text ?? "Unknown error");
         isLoading.value = false;
@@ -153,7 +164,7 @@ class MessagePageController extends GetxController {
       lastMsg.content += token;
       chatMessages.refresh();
     }
-    Future.delayed(const Duration(milliseconds: 1), smoothScrollToBottom);
+    Future.delayed(const Duration(milliseconds: 1), _smoothScrollToBottom);
   }
 
   void _finalizeMessage() {
@@ -166,6 +177,29 @@ class MessagePageController extends GetxController {
 
   void _setStatus(String status) {
     eventStatus.value = status.trim();
+  }
+
+  void _showSuggestion(String text, VoidCallback action) {
+    suggestion.value = text;
+    suggestionAction = action;
+  }
+
+  void _navigateToExplore(String location) {
+    ExplorePageController explorePageController;
+    DashboardController dashboardController;
+
+    if (Get.isRegistered<ExplorePageController>() &&
+        Get.isRegistered<DashboardController>()) {
+      explorePageController = Get.find<ExplorePageController>();
+      dashboardController = Get.find<DashboardController>();
+    } else {
+      explorePageController = Get.put(ExplorePageController());
+      dashboardController = Get.put(DashboardController());
+    }
+
+    explorePageController.fetchDynamicIslands(location);
+
+    dashboardController.changeIndex(2);
   }
 
   // ACTION
@@ -196,6 +230,7 @@ class MessagePageController extends GetxController {
 
     chatMessages.add(ChatMessage(content: text, isUser: true));
     isLoading.value = true;
+    suggestion.value = "";
 
     textController.clear();
 
@@ -206,5 +241,17 @@ class MessagePageController extends GetxController {
         text: text,
       ),
     );
+  }
+
+  // Suggestion
+  void onSuggestionClicked() {
+    suggestion.value = "";
+
+    if (suggestionAction != null) {
+      suggestionAction!();
+    }
+
+    suggestion.value = "";
+    suggestionAction = null;
   }
 }

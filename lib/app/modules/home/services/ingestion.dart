@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/ingestion_model.dart';
 
 class Ingestion {
-  final String _ingestionUrl = dotenv.env['INGESTION_URL'] ?? '';
+  final String _baseUrl = dotenv.env['BASE_URL'] ?? '';
 
   Future<String?> getIngestionKey() async {
     final envKey = dotenv.env['INGESTION_KEY'];
@@ -24,7 +24,7 @@ class Ingestion {
       throw Exception('Ingestion key not available.');
     }
 
-    final uri = Uri.parse('$_ingestionUrl');
+    final uri = Uri.parse('https://${_baseUrl}/nusaai/api/ingest/thread');
 
     final body = jsonEncode({
       'description': description,
