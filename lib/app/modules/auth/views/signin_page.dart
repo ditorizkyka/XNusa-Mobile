@@ -61,17 +61,6 @@ class SigninPage extends GetView<AuthController> {
                     ),
 
                     Gap.h4,
-                    GestureDetector(
-                      onTap: () {
-                        print("Forgot Password");
-                      },
-                      child: Text(
-                        "Forgot Password?",
-                        style: TypographyApp.label.copyWith(
-                          color: ColorApp.primary,
-                        ),
-                      ),
-                    ),
 
                     Gap.h16,
                     Obx(

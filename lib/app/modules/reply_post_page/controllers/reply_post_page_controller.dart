@@ -12,6 +12,10 @@ class ReplyPostPageController extends GetxController {
   RxInt charCount = 0.obs;
   final replies = <ReplyModel>[].obs;
 
+  // ✅ Observable untuk validasi
+  final isReplyValid = false.obs;
+  final isSubmitting = false.obs;
+
   // ✅ Tambahkan observable untuk post yang sedang dilihat
   final currentPost = PostModel().obs;
 
@@ -23,19 +27,35 @@ class ReplyPostPageController extends GetxController {
 
   final count = 0.obs;
 
+  // ✅ Rules untuk reply (mirip X/Twitter)
+  static const int minReplyLength = 1;
+  static const int maxReplyLength = 280; // X limit is 280 characters
+
   @override
   void onInit() {
-    replyController.addListener(() {
-      charCount.value = replyController.text.length;
-    });
+    replyController.addListener(_validateReply);
 
     // ✅ Set initial post dari arguments
     if (Get.arguments != null && Get.arguments is PostModel) {
       currentPost.value = Get.arguments;
       _singlePostList.add(currentPost.value);
     }
-
     super.onInit();
+  }
+
+  // ✅ Validasi reply sesuai rules X
+  void _validateReply() {
+    final text = replyController.text.trim();
+    charCount.value = replyController.text.length;
+
+    // Reply valid jika:
+    // 1. Tidak kosong setelah di-trim
+    // 2. Panjang karakter >= minReplyLength
+    // 3. Panjang karakter <= maxReplyLength
+    isReplyValid.value =
+        text.isNotEmpty &&
+        text.length >= minReplyLength &&
+        charCount.value <= maxReplyLength;
   }
 
   // ✅ Method untuk toggle like pada post yang sedang dibuka
@@ -55,29 +75,74 @@ class ReplyPostPageController extends GetxController {
   }
 
   Future<void> submitReply({required int postId}) async {
+    // ✅ Validasi sebelum submit
+    if (!isReplyValid.value) {
+      Get.snackbar(
+        "Invalid Reply",
+        "Please write something before replying",
+        // snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    // ✅ Cek jika sedang submit (prevent double submission)
+    if (isSubmitting.value) return;
+
     final replyText = replyController.text.trim();
     final user = supabase.auth.currentUser;
-    if (user == null) return;
 
-    // insert reply
-    await supabase.from('replies').insert({
-      'post_id': postId,
-      'user_id': user.id,
-      'content': replyText,
-      'created_at': DateTime.now().toIso8601String(),
-    });
+    if (user == null) {
+      Get.snackbar(
+        "Error",
+        "You must be logged in to reply",
+        // snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
 
-    // update comment_count
-    await supabase.rpc('increment_comment_count', params: {'post_id': postId});
+    try {
+      isSubmitting.value = true;
 
-    Get.snackbar("Success", "Reply submitted successfully");
-    replyController.clear();
-    await fetchReplies(postId);
+      // ✅ Insert reply
+      await supabase.from('replies').insert({
+        'post_id': postId,
+        'user_id': user.id,
+        'content': replyText,
+        'created_at': DateTime.now().toIso8601String(),
+      });
 
-    // ✅ Update comment count di currentPost
-    currentPost.value = currentPost.value.copyWith(
-      commentCount: (currentPost.value.commentCount) + 1,
-    );
+      // ✅ Update comment_count
+      await supabase.rpc(
+        'increment_comment_count',
+        params: {'post_id': postId},
+      );
+
+      Get.snackbar(
+        "Success",
+        "Reply submitted successfully",
+        // snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // ✅ Clear input setelah berhasil
+      replyController.clear();
+
+      // ✅ Refresh replies
+      await fetchReplies(postId);
+
+      // ✅ Update comment count di currentPost
+      currentPost.value = currentPost.value.copyWith(
+        commentCount: (currentPost.value.commentCount) + 1,
+      );
+    } catch (e) {
+      print('⚠️ Error submitReply: $e');
+      Get.snackbar(
+        "Error",
+        "Failed to submit reply. Please try again.",
+        // snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isSubmitting.value = false;
+    }
   }
 
   Future<void> fetchReplies(int postId) async {

@@ -9,7 +9,6 @@ import '../controllers/auth_controller.dart';
 class SignupPage extends GetView<AuthController> {
   SignupPage({super.key});
 
-  // Controller text field
   final emailC = TextEditingController();
   final passC = TextEditingController();
   final confirmPassC = TextEditingController();
@@ -62,6 +61,7 @@ class SignupPage extends GetView<AuthController> {
                       isPassword: true,
                       controller: passC,
                     ),
+
                     Gap.h8,
                     InputField(
                       labelInput: "Confirm Password",
@@ -69,13 +69,33 @@ class SignupPage extends GetView<AuthController> {
                       isPassword: true,
                       controller: confirmPassC,
                     ),
+
                     Gap.h8,
-                    InputField(
-                      labelInput: "Username",
-                      hintInput: "create an unique username!",
-                      isPassword: false,
-                      controller: usernameC,
+                    // ✅ Username field dengan helper text
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InputField(
+                          labelInput: "Username",
+                          hintInput: "create an unique username!",
+                          isPassword: false,
+                          controller: usernameC,
+                        ),
+                        Gap.h4,
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: SizeApp.w4),
+                          child: Text(
+                            "• 3-30 karakter\n• Hanya huruf, angka, underscore (_), dan titik (.)\n• Tidak boleh diawali/diakhiri dengan titik",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: ColorApp.grey,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+
                     Gap.h8,
                     InputField(
                       labelInput: "Display Name",
@@ -114,30 +134,42 @@ class SignupPage extends GetView<AuthController> {
                                 onTap: () async {
                                   final email = emailC.text.trim();
                                   final pass = passC.text.trim();
+                                  final confirmPass = confirmPassC.text.trim();
                                   final username = usernameC.text.trim();
                                   final displayName = displayNameC.text.trim();
 
+                                  // Validasi field kosong
                                   if (email.isEmpty ||
                                       pass.isEmpty ||
+                                      confirmPass.isEmpty ||
                                       username.isEmpty ||
                                       displayName.isEmpty) {
                                     Get.snackbar(
                                       'Error',
-                                      'Please fill in all fields',
-                                      snackPosition: SnackPosition.BOTTOM,
+                                      'Mohon isi semua field',
                                     );
                                     return;
                                   }
 
-                                  if (pass != confirmPassC.text.trim()) {
+                                  // Validasi password match
+                                  if (pass != confirmPass) {
                                     Get.snackbar(
                                       'Error',
-                                      'Passwords do not match',
-                                      snackPosition: SnackPosition.BOTTOM,
+                                      'Password tidak cocok',
                                     );
                                     return;
                                   }
 
+                                  // Validasi panjang password
+                                  if (pass.length < 8) {
+                                    Get.snackbar(
+                                      'Error',
+                                      'Password minimal 8 karakter',
+                                    );
+                                    return;
+                                  }
+
+                                  // Panggil sign up (validasi username ada di controller)
                                   await c.signUp(
                                     email: email,
                                     password: pass,

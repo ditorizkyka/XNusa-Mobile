@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xnusa_mobile/app/data/models/reply_model.dart';
@@ -36,13 +35,15 @@ class UserReply extends StatelessWidget {
                 Column(
                   children: [
                     Obx(() {
-                      final isFollowed = followC.isFollowed(reply.userId);
+                      final isFollowed = followC.isFollowed(reply.userId ?? '');
                       return Stack(
                         children: [
                           CircleAvatar(
-                            radius: 18,
+                            radius: SizeApp.h16,
                             backgroundImage: NetworkImage(
-                              reply.profileImageUrl,
+                              reply.profileImageUrl?.isNotEmpty == true
+                                  ? reply.profileImageUrl!
+                                  : 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(reply.username ?? "User")}',
                             ),
                           ),
                           if (!isFollowed && reply.userId != user?.id)
@@ -51,8 +52,9 @@ class UserReply extends StatelessWidget {
                               right: 0,
                               child: GestureDetector(
                                 onTap:
-                                    () =>
-                                        followC.toggleFollowUser(reply.userId),
+                                    () => followC.toggleFollowUser(
+                                      reply.userId ?? '',
+                                    ),
                                 child: Container(
                                   width: 16,
                                   height: 16,
@@ -86,7 +88,7 @@ class UserReply extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            reply.username,
+                            reply.username ?? 'Unknown',
                             style: TypographyApp.textLight.copyWith(
                               fontWeight: FontWeight.bold,
                               color: ColorApp.primary,
@@ -96,21 +98,19 @@ class UserReply extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                "2h",
+                                timeAgo(reply.createdAt),
                                 style: TypographyApp.textLight.copyWith(
                                   fontSize: SizeApp.h12,
                                   color: ColorApp.grey,
                                 ),
                               ),
-                              Gap.w12,
-                              Icon(Icons.more_horiz, color: ColorApp.primary),
                             ],
                           ),
                         ],
                       ),
                       Gap.h4,
                       Text(
-                        reply.content,
+                        reply.content ?? '',
                         style: TypographyApp.textLight.copyWith(
                           fontWeight: FontWeight.normal,
                           color: ColorApp.primary,
@@ -128,5 +128,28 @@ class UserReply extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String timeAgo(DateTime? dateTime) {
+    if (dateTime == null) return '';
+
+    final now = DateTime.now();
+    if (dateTime.isAfter(now)) return 'now';
+
+    final diff = now.difference(dateTime);
+
+    if (diff.inSeconds < 60) return '${diff.inSeconds}s';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m';
+    if (diff.inHours < 24) return '${diff.inHours}h';
+    if (diff.inDays < 7) return '${diff.inDays}d';
+
+    final weeks = (diff.inDays / 7).floor();
+    if (weeks < 4) return '${weeks}w';
+
+    final months = (diff.inDays / 30).floor();
+    if (months < 12) return '${months}mo';
+
+    final years = (diff.inDays / 365).floor();
+    return '${years}y';
   }
 }

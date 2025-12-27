@@ -18,11 +18,14 @@ class ExplorePageView extends GetView<ExplorePageController> {
             Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: SizeApp.w16,
-                vertical: SizeApp.h12,
+                vertical: SizeApp.h8,
               ),
               child: Row(
                 children: [
-                  Text("Explore Nusa", style: TypographyApp.headline1),
+                  Image.asset(
+                    'assets/logo/XploreNusa.png',
+                    height: SizeApp.h48,
+                  ),
                 ],
               ),
             ),

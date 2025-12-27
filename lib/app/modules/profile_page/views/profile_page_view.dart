@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:xnusa_mobile/app/modules/auth/controllers/auth_controller.dart';
+import 'package:xnusa_mobile/app/modules/dashboard/controllers/dashboard_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 import 'package:xnusa_mobile/widgets/button_app_unfilled.dart';
 import 'package:xnusa_mobile/widgets/dialog/choose_button_dialog.dart';
@@ -21,12 +22,15 @@ class ProfilePageView extends GetView<ProfilePageController> {
   Widget build(BuildContext context) {
     Get.lazyPut(() => ProfilePageController());
     final authC = Get.put(AuthController());
+    final dashboardC = Get.put(DashboardController());
 
     return Scaffold(
       backgroundColor: ColorApp.white,
       body: SafeArea(
         child: Obx(() {
           final data = controller.profileData;
+          final followersCount = controller.followersCount.value;
+          final followers = controller.followers;
 
           return DefaultTabController(
             length: 2,
@@ -34,7 +38,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // ✅ AppBar custom
-                AppBarProfile(authC: authC),
+                AppBarProfile(authC: authC, dashboardC: dashboardC),
 
                 // ✅ Bagian profil
                 if (controller.isLoading.value)
@@ -58,14 +62,36 @@ class ProfilePageView extends GetView<ProfilePageController> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // 🔥 Display Name - max 20 char
-                                  Text(
-                                    truncateText(
-                                      data["display_name"] ?? "display_name",
-                                      20,
-                                    ),
-                                    style: TypographyApp.headline1,
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          truncateText(
+                                            data["display_name"] ??
+                                                "display_name",
+                                            20,
+                                          ),
+                                          style: TypographyApp.headline1,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+
+                                      // ✅ tampilkan badge kalau verified
+                                      if ((data["isVerified"] as bool?) ??
+                                          false)
+                                        Icon(
+                                          Icons.verified,
+                                          size: SizeApp.h16,
+                                          color:
+                                              Colors.blue, // atau Colors.blue
+                                        ),
+                                    ],
                                   ),
+
                                   Gap.h4,
                                   Row(
                                     children: [
@@ -96,7 +122,7 @@ class ProfilePageView extends GetView<ProfilePageController> {
                                           Get.snackbar(
                                             'Copied!',
                                             'Profile URL copied to clipboard',
-                                            snackPosition: SnackPosition.BOTTOM,
+
                                             duration: const Duration(
                                               seconds: 2,
                                             ),
@@ -160,7 +186,10 @@ class ProfilePageView extends GetView<ProfilePageController> {
                                         Gap.h12,
                                       ],
                                     ),
-                                  FollowersRow(),
+                                  FollowersRow(
+                                    followerCount: followersCount,
+                                    followers: followers,
+                                  ),
                                 ],
                               ),
                             ),
@@ -320,7 +349,13 @@ class ProfilePageView extends GetView<ProfilePageController> {
 }
 
 class AppBarProfile extends StatelessWidget {
-  const AppBarProfile({required this.authC, super.key});
+  final DashboardController dashboardC;
+
+  const AppBarProfile({
+    required this.authC,
+    required this.dashboardC,
+    super.key,
+  });
 
   final AuthController authC;
 
@@ -336,7 +371,10 @@ class AppBarProfile extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(Icons.search, size: SizeApp.h20),
+            GestureDetector(
+              onTap: () => dashboardC.changeIndex(1),
+              child: Icon(Icons.search, size: SizeApp.h20),
+            ),
             Row(
               children: [
                 GestureDetector(
@@ -357,7 +395,10 @@ class AppBarProfile extends StatelessWidget {
                   child: Icon(Icons.logout_rounded, size: SizeApp.h20),
                 ),
                 Gap.w12,
-                Icon(Icons.settings_outlined, size: SizeApp.h20),
+                GestureDetector(
+                  onTap: () => Get.toNamed('/edit-profile-page'),
+                  child: Icon(Icons.settings_outlined, size: SizeApp.h20),
+                ),
               ],
             ),
           ],
@@ -368,7 +409,14 @@ class AppBarProfile extends StatelessWidget {
 }
 
 class FollowersRow extends StatelessWidget {
-  const FollowersRow({super.key});
+  final int followerCount;
+  final List<Map<String, dynamic>> followers;
+
+  const FollowersRow({
+    super.key,
+    required this.followerCount,
+    required this.followers,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -376,60 +424,39 @@ class FollowersRow extends StatelessWidget {
     final username = controller.profileData["username"] ?? "";
     final profileUrl = "xnusa.id/$username";
 
+    // ambil max 3 followers terbaru untuk preview avatar
+    final previewFollowers = followers.take(3).toList();
+    final showPlaceholder = previewFollowers.isEmpty;
+
+    // jumlah avatar yang tampil (minimal 1 kalau placeholder)
+    final avatarCount = showPlaceholder ? 1 : previewFollowers.length;
+
+    // width stack dinamis agar tidak ada gap saat avatar cuma 1
+    // diameter avatar = 30 (radius 15), overlap step = 20
+    final stackWidth = 30.0 + (avatarCount - 1) * 20.0;
+
     return Row(
       children: [
-        // Stack of avatars
         SizedBox(
-          width: 70,
+          width: stackWidth,
           height: 30,
           child: Stack(
             children: [
-              Positioned(
-                left: 0,
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: 13,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=1',
-                    ),
+              if (showPlaceholder)
+                _buildAvatar(left: 0, imageUrl: null)
+              else
+                for (int i = 0; i < previewFollowers.length; i++)
+                  _buildAvatar(
+                    left: i * 20.0,
+                    imageUrl: _getFollowerImageUrl(previewFollowers[i]),
                   ),
-                ),
-              ),
-              Positioned(
-                left: 20,
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: 13,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=2',
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 40,
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: 13,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=3',
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
         const SizedBox(width: 8),
-        const Text(
-          '412 k followers',
-          style: TextStyle(
+        Text(
+          '$followerCount followers',
+          style: const TextStyle(
             fontSize: 14,
             color: Colors.black87,
             fontWeight: FontWeight.w400,
@@ -444,12 +471,38 @@ class FollowersRow extends StatelessWidget {
               'Profile URL copied to clipboard',
               snackPosition: SnackPosition.BOTTOM,
               duration: const Duration(seconds: 2),
-              margin: EdgeInsets.all(16),
+              margin: const EdgeInsets.all(16),
             );
           },
           child: Icon(Icons.copy_rounded, size: 18, color: ColorApp.darkGrey),
         ),
       ],
+    );
+  }
+
+  /// Ambil image url dari struktur followers fetchFollowers():
+  /// { 'profile': { 'profile_image_url': '...' } }
+  String? _getFollowerImageUrl(Map<String, dynamic> followerRow) {
+    final profile = followerRow['profile'];
+    if (profile is Map<String, dynamic>) {
+      final url = profile['profile_image_url'];
+      if (url is String && url.trim().isNotEmpty) return url;
+    }
+    return null;
+  }
+
+  Widget _buildAvatar({required double left, required String? imageUrl}) {
+    return Positioned(
+      left: left,
+      child: CircleAvatar(
+        radius: 15,
+        backgroundColor: Colors.white,
+        child: CircleAvatar(
+          radius: 13,
+          backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+          child: imageUrl == null ? const Icon(Icons.person, size: 14) : null,
+        ),
+      ),
     );
   }
 }

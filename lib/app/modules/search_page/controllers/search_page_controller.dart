@@ -5,20 +5,23 @@ class SearchPageController extends GetxController {
   final supabase = Supabase.instance.client;
   var searchResults = <Map<String, dynamic>>[].obs;
 
+  final currentKeyword = ''.obs; // ✅ simpan keyword terakhir
+
   Future<void> searchUser(String keyword) async {
     final user = supabase.auth.currentUser;
+
+    currentKeyword.value = keyword; // ✅ simpan keyword
+
     if (keyword.isEmpty || user == null) {
       searchResults.clear();
       return;
     }
 
-    // Cari user dengan username mirip
     final response = await supabase
         .from('profiles')
         .select('id, username, display_name, profile_image_url')
         .ilike('username', '%$keyword%');
 
-    // Ambil semua following user login
     final followingResponse = await supabase
         .from('follows')
         .select('following_id')
@@ -27,7 +30,6 @@ class SearchPageController extends GetxController {
     final followingIds =
         (followingResponse as List).map((e) => e['following_id']).toList();
 
-    // Tandai mana yang sudah difollow
     searchResults.assignAll(
       (response as List)
           .map((e) => Map<String, dynamic>.from(e))
@@ -40,30 +42,43 @@ class SearchPageController extends GetxController {
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
-    final isFollowed =
+    // cari index user di list
+    final index = searchResults.indexWhere((u) => u['id'] == targetUserId);
+    if (index == -1) return;
+
+    final currentlyFollowed =
+        (searchResults[index]['is_followed'] ?? false) as bool;
+
+    try {
+      // ✅ Optimistic update dulu biar UI langsung berubah
+      searchResults[index]['is_followed'] = !currentlyFollowed;
+      searchResults.refresh();
+
+      if (currentlyFollowed) {
         await supabase
             .from('follows')
-            .select('id')
+            .delete()
             .eq('follower_id', user.id)
-            .eq('following_id', targetUserId)
-            .maybeSingle();
-
-    if (isFollowed != null) {
-      // sudah follow → unfollow
-      await supabase
-          .from('follows')
-          .delete()
-          .eq('follower_id', user.id)
-          .eq('following_id', targetUserId);
-    } else {
-      // belum follow → follow
-      await supabase.from('follows').insert({
-        'follower_id': user.id,
-        'following_id': targetUserId,
-      });
+            .eq('following_id', targetUserId);
+      } else {
+        await supabase.from('follows').insert({
+          'follower_id': user.id,
+          'following_id': targetUserId,
+        });
+      }
+    } catch (e) {
+      // ❌ kalau gagal, balikin lagi state-nya
+      searchResults[index]['is_followed'] = currentlyFollowed;
+      searchResults.refresh();
+      Get.snackbar('Error', e.toString());
     }
+  }
 
-    // refresh hasil search supaya UI ikut update
-    await searchUser('');
+  @override
+  void onInit() {
+    // reset state saat page dibuka
+    searchResults.clear();
+    currentKeyword.value = '';
+    super.onInit();
   }
 }

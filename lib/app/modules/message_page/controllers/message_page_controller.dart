@@ -74,10 +74,10 @@ class MessagePageController extends GetxController {
 
     if (!success) {
       isLoading.value = false;
-      Get.snackbar(
-        "Websocket connection failed",
-        "Can't connect to the server.",
-      );
+      // Get.snackbar(
+      //   "Websocket connection failed",
+      //   "Can't connect to the server.",
+      // );
       return;
     }
 

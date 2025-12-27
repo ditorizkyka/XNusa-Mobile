@@ -12,6 +12,9 @@ class ProfilePageController extends GetxController {
   var userLikes = <PostModel>[].obs; // post yang dilike user
   var isLoading = false.obs;
   final ImagePicker _picker = ImagePicker();
+  var followers =
+      <Map<String, dynamic>>[].obs; // daftar followers + data profil
+  var followersCount = 0.obs;
 
   final likeC = Get.put(LikeController()); // 🔥 controller global
 
@@ -74,7 +77,9 @@ class ProfilePageController extends GetxController {
       final res =
           await supabase
               .from('profiles')
-              .select()
+              .select(
+                'id, username, display_name, bio, profile_image_url, isVerified',
+              )
               .eq('id', user.id)
               .maybeSingle();
 
@@ -88,72 +93,86 @@ class ProfilePageController extends GetxController {
     }
   }
 
-  /// 🔹 Ambil semua post milik user login dan semua post yang dia like
   Future<void> fetchPostUser() async {
     try {
       final user = supabase.auth.currentUser;
       if (user == null) return;
 
-      // ✅ Ambil semua post user login + status like-nya
+      // ✅ Threads: post milik user + is_liked + REAL count likes
       final postsResponse = await supabase
           .from('posts')
           .select('''
           *,
-          profiles(username, profile_image_url),
-          likes(user_id)
+          profiles(username, profile_image_url, display_name),
+          likes(user_id),
+          likes_count:likes(count)
         ''')
           .eq('user_id', user.id)
           .order('created_at', ascending: false);
 
-      // Mapping hasilnya menjadi list PostModel
       userPosts.value =
-          (postsResponse as List)
-              .map(
-                (post) => PostModel.fromJson({
-                  ...post,
-                  'is_liked': (post['likes'] as List).any(
-                    (like) => like['user_id'] == user.id,
-                  ), // 🔥 cek apakah user like post sendiri
-                }),
-              )
-              .toList();
+          (postsResponse as List).map((post) {
+            final likesCountList = post['likes_count'] as List?;
+            final likesCount =
+                (likesCountList != null && likesCountList.isNotEmpty)
+                    ? (likesCountList[0]['count'] as int? ?? 0)
+                    : 0;
 
-      // ✅ Ambil semua post yang pernah di-like oleh user login
+            final isLiked = (post['likes'] as List).any(
+              (l) => l['user_id'] == user.id,
+            );
+
+            return PostModel.fromJson({
+              ...post,
+              'like_count': likesCount, // ✅ override dari hasil COUNT
+              'is_liked': isLiked,
+            });
+          }).toList();
+
+      // ✅ Likes tab: post yang di-like user + REAL count likes
       final likeResponse = await supabase
           .from('likes')
           .select('''
-      id,
-      created_at,
-      posts (
-        id,
-        description,
-        image_url,
-        created_at,
-        like_count,
-        comment_count,
-        profiles (
-          username,
-          display_name,
-          profile_image_url
-        ),
-        likes(user_id)
-      )
-    ''')
+          id,
+          created_at,
+          posts (
+            id,
+            description,
+            image_url,
+            created_at,
+            comment_count,
+            profiles (
+              username,
+              display_name,
+              profile_image_url
+            ),
+            likes(user_id),
+            likes_count:likes(count)
+          )
+        ''')
           .eq('user_id', user.id)
           .order('created_at', ascending: false);
 
-      // ✅ Ubah hasilnya jadi PostModel dengan flag isLiked
       userLikes.value =
-          (likeResponse as List)
-              .map(
-                (like) => PostModel.fromJson({
-                  ...like['posts'],
-                  'is_liked': (like['posts']['likes'] as List).any(
-                    (l) => l['user_id'] == user.id,
-                  ),
-                }),
-              )
-              .toList();
+          (likeResponse as List).map((likeRow) {
+            final post = likeRow['posts'] as Map<String, dynamic>;
+
+            final likesCountList = post['likes_count'] as List?;
+            final likesCount =
+                (likesCountList != null && likesCountList.isNotEmpty)
+                    ? (likesCountList[0]['count'] as int? ?? 0)
+                    : 0;
+
+            final isLiked = (post['likes'] as List).any(
+              (l) => l['user_id'] == user.id,
+            );
+
+            return PostModel.fromJson({
+              ...post,
+              'like_count': likesCount, // ✅ override dari hasil COUNT
+              'is_liked': isLiked,
+            });
+          }).toList();
     } catch (e) {
       print("❌ Error fetchPostUser: $e");
     } finally {
@@ -197,6 +216,48 @@ class ProfilePageController extends GetxController {
     }
   }
 
+  Future<void> fetchFollowers() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user == null) return;
+
+      // Ambil semua yang follow user ini (following_id = user.id)
+      final res = await supabase
+          .from('follows')
+          .select('''
+          follower_id,
+          created_at,
+          profiles:profiles!follows_follower_id_fkey(
+            id,
+            username,
+            display_name,
+            profile_image_url,
+            isVerified
+          )
+        ''')
+          .eq('following_id', user.id)
+          .order('created_at', ascending: false);
+
+      final list = (res as List);
+
+      // Simpan list follower (profilnya ada di key: 'profiles')
+      followers.value =
+          list.map((row) {
+            final profile = row['profiles'] as Map<String, dynamic>?;
+            return {
+              'follower_id': row['follower_id'],
+              'created_at': row['created_at'],
+              'profile': profile, // berisi id, username, display_name, dll
+            };
+          }).toList();
+
+      followersCount.value = followers.length;
+    } catch (e) {
+      print("❌ Error fetchFollowers: $e");
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -206,6 +267,6 @@ class ProfilePageController extends GetxController {
   /// Jalankan semua fetch secara berurutan
   Future<void> loadAllContent() async {
     await fetchProfile();
-    await fetchPostUser();
+    await fetchFollowers();
   }
 }

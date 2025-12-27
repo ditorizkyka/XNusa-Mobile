@@ -12,6 +12,37 @@ class AuthController extends GetxController {
 
   @override
   /// 🔹 SIGN UP
+  // ✅ Fungsi validasi username (aturan seperti Instagram)
+  String? validateUsername(String username) {
+    if (username.isEmpty) {
+      return 'Username tidak boleh kosong';
+    }
+
+    if (username.length < 3) {
+      return 'Username minimal 3 karakter';
+    }
+
+    if (username.length > 30) {
+      return 'Username maksimal 30 karakter';
+    }
+
+    final validPattern = RegExp(r'^[a-zA-Z0-9._]+$');
+    if (!validPattern.hasMatch(username)) {
+      return 'Username hanya boleh berisi huruf, angka, underscore (_), dan titik (.)';
+    }
+
+    if (username.startsWith('.') || username.endsWith('.')) {
+      return 'Username tidak boleh diawali atau diakhiri dengan titik';
+    }
+
+    if (username.contains('..')) {
+      return 'Username tidak boleh memiliki titik berturut-turut';
+    }
+
+    return null;
+  }
+
+  // ✅ Sign Up dengan validasi username
   Future<void> signUp({
     required String email,
     required String password,
@@ -21,24 +52,57 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      final res = await supabase.auth.signUp(email: email, password: password);
-      final user = res.user;
+      // Validasi username format
+      final usernameError = validateUsername(username);
+      if (usernameError != null) {
+        Get.snackbar(
+          'Error',
+          usernameError,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
 
+      // Cek apakah username sudah digunakan
+      final existingUser =
+          await supabase
+              .from('profiles')
+              .select('username')
+              .eq('username', username.toLowerCase())
+              .maybeSingle();
+
+      if (existingUser != null) {
+        Get.snackbar(
+          'Error',
+          'Username "$username" sudah digunakan. Silakan pilih yang lain.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Proses sign up
+      final res = await supabase.auth.signUp(email: email, password: password);
+
+      final user = res.user;
       if (user != null) {
-        // ✅ Simpan data profil ke tabel 'profiles'
         await supabase.from('profiles').insert({
           'id': user.id,
-          'username': username,
+          'username': username.toLowerCase(),
           'display_name': displayName,
           'bio': '',
-          'profile_image_url': null,
+          'profile_image_url':
+              'https://ui-avatars.com/api/?name=${Uri.encodeComponent(displayName)}',
         });
 
-        Get.snackbar('Sukses', 'Akun berhasil dibuat!');
+        Get.snackbar(
+          'Sukses',
+          'Akun berhasil dibuat!',
+          // snackPosition: SnackPosition.,
+        );
         Get.offAllNamed('/signin');
       }
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
     } finally {
       isLoading.value = false;
     }

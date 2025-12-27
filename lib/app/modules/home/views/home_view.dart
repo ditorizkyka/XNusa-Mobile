@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:xnusa_mobile/app/modules/dashboard/controllers/dashboard_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
 import 'package:xnusa_mobile/widgets/user_post.dart';
 import '../controllers/home_controller.dart';
@@ -10,6 +11,7 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     Get.lazyPut(() => HomeController());
+    final dashboardC = Get.put(DashboardController());
     final TextEditingController postController = TextEditingController();
     return Scaffold(
       backgroundColor: ColorApp.white,
@@ -23,27 +25,33 @@ class HomeView extends GetView<HomeController> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: SizeApp.w12),
-                      child: Icon(
-                        Icons.search,
-                        color: ColorApp.primary,
-                        size: SizeApp.h24,
+                    GestureDetector(
+                      onTap: () => dashboardC.changeIndex(1),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: SizeApp.w12),
+                        child: Icon(
+                          Icons.search,
+                          color: ColorApp.primary,
+                          size: SizeApp.h24,
+                        ),
                       ),
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: SizeApp.w12),
                       child: Image.asset(
-                        'assets/logo/xn.png',
+                        'assets/logo/XNusa.png',
                         height: SizeApp.h40,
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: SizeApp.w12),
-                      child: Icon(
-                        Icons.map_outlined,
-                        color: ColorApp.primary,
-                        size: SizeApp.h24,
+                    GestureDetector(
+                      onTap: () => dashboardC.changeIndex(2),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: SizeApp.w12),
+                        child: Icon(
+                          Icons.map_outlined,
+                          color: ColorApp.primary,
+                          size: SizeApp.h24,
+                        ),
                       ),
                     ),
                   ],
@@ -55,7 +63,9 @@ class HomeView extends GetView<HomeController> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(color: ColorApp.primary),
+                  );
                 }
 
                 return ListView.builder(
@@ -124,7 +134,7 @@ class PostField extends StatelessWidget {
                   radius: 18,
                   backgroundImage: NetworkImage(
                     controller.profileData['profile_image_url'] ??
-                        'https://ui-avatars.com/api/?name=User',
+                        'https://ui-avatars.com/api/?name=${Uri.encodeComponent(controller.profileData['display_name'] ?? "User")}',
                   ),
                 ),
                 Gap.w12,

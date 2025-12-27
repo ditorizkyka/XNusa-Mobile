@@ -151,7 +151,7 @@ class DashboardNavBar extends StatelessWidget {
                                     ? ColorApp.primary
                                     : Colors.grey[600],
                           ),
-                          "Chatbot",
+                          "Nusa AI",
                           3,
                           onTap: () {
                             controller.changeIndex(3);
@@ -267,8 +267,11 @@ class DashboardNavBar extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Center(
-              child: Icon(Icons.map_outlined, size: 32, color: Colors.white),
+            child: Center(
+              child: Image.asset(
+                'assets/logo/xn_white.png',
+                height: SizeApp.h36,
+              ),
             ),
           ),
         ],

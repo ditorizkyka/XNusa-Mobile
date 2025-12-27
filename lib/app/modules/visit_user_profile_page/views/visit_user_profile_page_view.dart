@@ -31,7 +31,7 @@ class VisitUserProfileView extends GetView<VisitUserProfileController> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final data = controller.userData.value;
+          final data = controller.userData;
 
           return Column(
             children: [
@@ -150,7 +150,7 @@ class VisitUserProfileView extends GetView<VisitUserProfileController> {
                                 ),
 
                               // Followers info
-                              UserFollowersRow(data: data),
+                              const UserFollowersRow(),
                             ],
                           ),
                         ),
@@ -191,11 +191,6 @@ class VisitUserProfileView extends GetView<VisitUserProfileController> {
                                     ? ColorApp.lightGrey
                                     : ColorApp.primary,
                             borderRadius: BorderRadius.circular(SizeApp.h8),
-                            border: Border.all(
-                              color:
-                                  isFollowed ? ColorApp.grey : ColorApp.primary,
-                              width: 1,
-                            ),
                           ),
                           child: Center(
                             child: Text(
@@ -303,75 +298,75 @@ class AppBarVisitProfile extends StatelessWidget {
 }
 
 class UserFollowersRow extends StatelessWidget {
-  final Map<dynamic, dynamic> data;
-
-  const UserFollowersRow({super.key, required this.data});
+  const UserFollowersRow({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final username = data["username"] ?? "";
-    final profileUrl = "xnusa.id/$username";
+    final c = Get.find<VisitUserProfileController>();
 
-    return Row(
-      children: [
-        // Stack of avatars
-        SizedBox(
-          width: 70,
-          height: 30,
-          child: Stack(
-            children: [
-              Positioned(
-                left: 0,
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: 13,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=1',
+    return Obx(() {
+      final followerCount = c.followersCount.value;
+      final followers = c.followers;
+
+      final previewFollowers = followers.take(3).toList();
+      final showPlaceholder = previewFollowers.isEmpty;
+
+      final avatarCount = showPlaceholder ? 1 : previewFollowers.length;
+      final stackWidth = 30.0 + (avatarCount - 1) * 20.0; // ✅ no gap
+
+      return Row(
+        children: [
+          SizedBox(
+            width: stackWidth,
+            height: 30,
+            child: Stack(
+              children: [
+                if (showPlaceholder)
+                  _buildAvatar(left: 0, imageUrl: null)
+                else
+                  for (int i = 0; i < previewFollowers.length; i++)
+                    _buildAvatar(
+                      left: i * 20.0,
+                      imageUrl: _getFollowerImageUrl(previewFollowers[i]),
                     ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 20,
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: 13,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=2',
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 40,
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: 13,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/150?img=3',
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '${data["followers_count"] ?? 0} followers',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.black87,
-            fontWeight: FontWeight.w400,
+          const SizedBox(width: 8),
+          Text(
+            '$followerCount followers',
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              fontWeight: FontWeight.w400,
+            ),
           ),
+        ],
+      );
+    });
+  }
+
+  String? _getFollowerImageUrl(Map<String, dynamic> followerRow) {
+    final profile = followerRow['profile'];
+    if (profile is Map<String, dynamic>) {
+      final url = profile['profile_image_url'];
+      if (url is String && url.trim().isNotEmpty) return url;
+    }
+    return null;
+  }
+
+  Widget _buildAvatar({required double left, required String? imageUrl}) {
+    return Positioned(
+      left: left,
+      child: CircleAvatar(
+        radius: 15,
+        backgroundColor: Colors.white,
+        child: CircleAvatar(
+          radius: 13,
+          backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+          child: imageUrl == null ? const Icon(Icons.person, size: 14) : null,
         ),
-      ],
+      ),
     );
   }
 }

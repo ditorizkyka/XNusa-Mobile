@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:xnusa_mobile/app/modules/profile_page/controllers/profile_page_controller.dart';
+import 'package:xnusa_mobile/app/modules/profile_page/controllers/trust_nusa_verified_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
+import 'package:xnusa_mobile/widgets/dialog/choose_button_dialog.dart';
 import '../controllers/edit_profile_page_controller.dart';
 
 class EditProfilePageView extends GetView<EditProfilePageController> {
@@ -10,6 +12,7 @@ class EditProfilePageView extends GetView<EditProfilePageController> {
   @override
   Widget build(BuildContext context) {
     final profileController = Get.put(ProfilePageController());
+    final trustNusaC = Get.put(TrustNusaController());
 
     return Scaffold(
       backgroundColor: ColorApp.lightGrey,
@@ -17,7 +20,32 @@ class EditProfilePageView extends GetView<EditProfilePageController> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: TextButton(
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (controller.hasUnsavedChanges()) {
+              // _showSaveChangesDialog();
+              showChooseButtonDialog(
+                title: "Unsaved Changes",
+                description:
+                    "You have unsaved changes. Would you like to save them before proceeding?",
+                onDiscard: () {
+                  Get.back(); // Close dialog
+                  Get.back(); // Navigate without saving
+                },
+                onSave: () async {
+                  Get.back(); // Close dialog
+                  await controller.saveProfile(); // Save changes
+                  // Only navigate if save was successful
+                  if (!controller.isLoading.value) {
+                    Get.back();
+                  }
+                },
+                discardText: "Discard",
+                saveText: "Save & Continue",
+              );
+            } else {
+              Get.back();
+            }
+          },
           child: Text(
             'Cancel',
             style: TypographyApp.label.copyWith(
@@ -50,7 +78,18 @@ class EditProfilePageView extends GetView<EditProfilePageController> {
                       ),
                     )
                     : TextButton(
-                      onPressed: controller.saveProfile,
+                      onPressed: () async {
+                        showChooseButtonDialog(
+                          title: "Save Profile",
+                          description:
+                              "Are you sure you want to save your changes?",
+                          onDiscard: () => Get.back(),
+                          onSave: controller.saveProfile,
+                          discardText: "Cancel",
+                          saveText: "Save Changes",
+                        );
+                        // Get.back();
+                      },
                       child: Text(
                         'Done',
                         style: TypographyApp.headline1.copyWith(
@@ -301,53 +340,22 @@ class EditProfilePageView extends GetView<EditProfilePageController> {
                       Divider(),
 
                       // ---------------------------------------
-                      // INSTAGRAM BADGE
-                      // ---------------------------------------
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: SizeApp.h8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Show TrustNusa Badge',
-                                    style: TypographyApp.label.copyWith(
-                                      fontSize: SizeApp.customHeight(11),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Gap.h4,
-                                  Text(
-                                    'When turned off, the Threads badge on your Instagram profile will also disappear.',
-                                    style: TypographyApp.label.copyWith(
-                                      fontSize: SizeApp.customHeight(10),
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Obx(
-                              () => Switch(
-                                value: controller.showInstagramBadge.value,
-                                onChanged: controller.toggleInstagramBadge,
-                                activeColor: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const Divider(),
-
-                      // ---------------------------------------
                       // TRUST NUSA VERIFIED BADGE
                       // ---------------------------------------
                       GestureDetector(
-                        onTap: () => controller.navigateToRequestVerified(),
+                        onTap: () {
+                          showChooseButtonDialog(
+                            title: "Request Trust Nusa?",
+                            description:
+                                "Are you sure you want to request Trust Nusa? Trust Nusa verified badge is given to users who have been verified by the Trust Nusa team.",
+                            onDiscard: () => Get.back(),
+                            onSave: () async {
+                              trustNusaC.requestTrustNusa();
+                              Get.back();
+                            },
+                            saveText: "Request Trust Nusa",
+                          );
+                        },
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: SizeApp.h8),
                           child: Row(

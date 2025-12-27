@@ -4,21 +4,30 @@ import 'package:meta/meta.dart';
 class PostModel {
   final int? id;
   final String? userId;
+
+  // relasi profiles
   final String? username;
   final String? displayName;
   final String? profileImageUrl;
+
+  // konten post
   final String? description;
   final String? imageUrl;
   final DateTime? createdAt;
 
-  // Statistik post
+  // statistik
   final int likeCount;
   final int commentCount;
-  final List? comments;
 
-  // Status interaktif
+  // status interaktif
   final bool isLiked;
   final bool isFollowed;
+
+  // ✅ badge verified (dari profiles.isVerified)
+  final bool isVerified;
+
+  // ✅ avatar preview (max 2) dari user yang reply
+  final List<String> replyAvatarUrls;
 
   const PostModel({
     this.id,
@@ -31,38 +40,52 @@ class PostModel {
     this.createdAt,
     this.likeCount = 0,
     this.commentCount = 0,
-    this.comments,
     this.isLiked = false,
     this.isFollowed = false,
+    this.isVerified = false,
+    this.replyAvatarUrls = const [],
   });
 
-  /// Factory dari JSON Supabase
   factory PostModel.fromJson(Map<String, dynamic> json) {
-    final profile = json['profiles'] ?? {};
+    final profile = (json['profiles'] ?? {}) as Map;
+
+    // ✅ parse reply avatar urls
+    final replyAvatars =
+        (json['reply_avatar_urls'] as List?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        const <String>[];
+
+    // ✅ verified bisa dikirim via json['is_verified'] atau langsung dari profiles.isVerified
+    final verifiedFromProfile = (profile['isVerified'] as bool?) ?? false;
+    final verifiedFromJson = (json['is_verified'] as bool?);
+
     return PostModel(
       id: json['id'] as int?,
       userId: json['user_id'] as String?,
+
       description: json['description'] as String?,
       imageUrl: json['image_url'] as String?,
       createdAt:
           json['created_at'] != null
-              ? DateTime.parse(json['created_at'])
+              ? DateTime.tryParse(json['created_at'].toString())
               : null,
-      likeCount: json['like_count'] ?? 0,
-      commentCount: json['comment_count'] ?? 0,
 
-      // relasi profile
-      username: profile['username'],
-      displayName: profile['display_name'],
-      profileImageUrl: profile['profile_image_url'],
+      likeCount: (json['like_count'] as int?) ?? 0,
+      commentCount: (json['comment_count'] as int?) ?? 0,
 
-      // tambahan status
-      isLiked: json['is_liked'] ?? false,
-      isFollowed: json['is_followed'] ?? false,
+      username: profile['username'] as String?,
+      displayName: profile['display_name'] as String?,
+      profileImageUrl: profile['profile_image_url'] as String?,
+
+      isLiked: (json['is_liked'] as bool?) ?? false,
+      isFollowed: (json['is_followed'] as bool?) ?? false,
+
+      isVerified: verifiedFromJson ?? verifiedFromProfile,
+      replyAvatarUrls: replyAvatars,
     );
   }
 
-  /// Untuk konversi kembali ke Map (opsional)
   Map<String, dynamic> toJson() => {
     'id': id,
     'user_id': userId,
@@ -75,9 +98,11 @@ class PostModel {
       'username': username,
       'display_name': displayName,
       'profile_image_url': profileImageUrl,
+      'isVerified': isVerified,
     },
     'is_liked': isLiked,
     'is_followed': isFollowed,
+    'reply_avatar_urls': replyAvatarUrls,
   };
 
   PostModel copyWith({
@@ -91,10 +116,10 @@ class PostModel {
     DateTime? createdAt,
     int? likeCount,
     int? commentCount,
-    int? parentPostId,
-    int? repostedFrom,
     bool? isLiked,
     bool? isFollowed,
+    bool? isVerified,
+    List<String>? replyAvatarUrls,
   }) {
     return PostModel(
       id: id ?? this.id,
@@ -109,6 +134,8 @@ class PostModel {
       commentCount: commentCount ?? this.commentCount,
       isLiked: isLiked ?? this.isLiked,
       isFollowed: isFollowed ?? this.isFollowed,
+      isVerified: isVerified ?? this.isVerified,
+      replyAvatarUrls: replyAvatarUrls ?? this.replyAvatarUrls,
     );
   }
 }

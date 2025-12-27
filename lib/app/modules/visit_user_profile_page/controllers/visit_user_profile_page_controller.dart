@@ -6,6 +6,9 @@ import 'package:xnusa_mobile/app/modules/home/controllers/like_controller.dart';
 
 class VisitUserProfileController extends GetxController {
   final String userId;
+  var followers = <Map<String, dynamic>>[].obs;
+  var followersCount = 0.obs;
+  var isLoadingFollowers = false.obs;
 
   VisitUserProfileController({required this.userId});
 
@@ -34,6 +37,7 @@ class VisitUserProfileController extends GetxController {
         fetchUserData(),
         fetchUserPosts(),
         checkFollowStatus(),
+        fetchFollowersVisitedUser(), // ✅ tambah ini
       ]);
     } catch (e) {
       Get.snackbar('Error', e.toString());
@@ -147,5 +151,45 @@ class VisitUserProfileController extends GetxController {
   /// 🔹 Toggle like post
   Future<void> toggleLike(PostModel post) async {
     await likeC.toggleLikeOptimistic(postList: userPosts, post: post);
+  }
+
+  Future<void> fetchFollowersVisitedUser() async {
+    try {
+      isLoadingFollowers.value = true;
+
+      final res = await supabase
+          .from('follows')
+          .select('''
+          follower_id,
+          created_at,
+          profiles:profiles!follows_follower_id_fkey(
+            id,
+            username,
+            display_name,
+            profile_image_url,
+            isVerified
+          )
+        ''')
+          .eq('following_id', userId)
+          .order('created_at', ascending: false);
+
+      final list = (res as List);
+
+      followers.value =
+          list.map((row) {
+            final profile = row['profiles'] as Map<String, dynamic>?;
+            return {
+              'follower_id': row['follower_id'],
+              'created_at': row['created_at'],
+              'profile': profile, // ✅ konsisten seperti profile page
+            };
+          }).toList();
+
+      followersCount.value = followers.length;
+    } catch (e) {
+      print("❌ Error fetchFollowersVisitedUser: $e");
+    } finally {
+      isLoadingFollowers.value = false;
+    }
   }
 }

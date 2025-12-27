@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:xnusa_mobile/app/data/models/post_model.dart';
-import 'package:xnusa_mobile/app/modules/dashboard/views/dashboard_view.dart';
 import 'package:xnusa_mobile/app/modules/home/controllers/home_controller.dart';
 import 'package:xnusa_mobile/constant/constant.dart';
+import 'package:xnusa_mobile/widgets/dialog/confirm_button_dialog.dart';
 import 'package:xnusa_mobile/widgets/user_reply.dart';
 
 import '../controllers/reply_post_page_controller.dart';
@@ -16,6 +16,7 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
     PostModel post = Get.arguments;
     final controller = Get.find<ReplyPostPageController>();
     final homeController = Get.put(HomeController());
+    // print(post.commentCount);
 
     controller.fetchReplies(post.id ?? 0);
 
@@ -25,7 +26,7 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
       body: SafeArea(
         child: Column(
           children: [
-            AppbarReplies(),
+            AppbarReplies(post: post, homeC: homeController),
             // Semua konten di bawah bisa scroll
             Expanded(
               // child: Container(color: Colors.amber),
@@ -68,6 +69,7 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
                 );
               }),
             ),
+            // ✅ Update bagian Container input reply di ReplyPostPageView
             Container(
               margin: EdgeInsets.symmetric(
                 horizontal: SizeApp.w12,
@@ -98,7 +100,7 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
                           Expanded(
                             child: TextField(
                               controller: controller.replyController,
-                              maxLength: 50,
+                              maxLength: 280, // ✅ Update max length sesuai X
                               maxLines: null,
                               style: TypographyApp.textLight.copyWith(
                                 fontSize: SizeApp.h12,
@@ -116,36 +118,72 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
                             ),
                           ),
 
-                          // 🔥 indikator karakter
+                          // ✅ Indikator karakter dengan warning
                           Obx(() {
+                            final charCount = controller.charCount.value;
+                            final maxLength = 280;
+                            final warningThreshold =
+                                260; // Warning di 260 karakter
+
+                            Color textColor;
+                            if (charCount > maxLength) {
+                              textColor = Colors.red;
+                            } else if (charCount >= warningThreshold) {
+                              textColor = Colors.orange;
+                            } else {
+                              textColor = ColorApp.darkGrey;
+                            }
+
                             return Text(
-                              "${controller.charCount.value}/50",
+                              "$charCount/$maxLength",
                               style: TypographyApp.textLight.copyWith(
-                                color:
-                                    controller.charCount.value >= 50
-                                        ? Colors.red
-                                        : ColorApp.darkGrey,
+                                color: textColor,
                                 fontSize: SizeApp.h12,
+                                fontWeight:
+                                    charCount >= warningThreshold
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
                               ),
                             );
                           }),
 
                           Gap.w8,
 
-                          GestureDetector(
-                            onTap:
-                                () => controller.submitReply(
-                                  postId: post.id ?? 0,
-                                ),
-                            child: Icon(
-                              Icons.send,
-                              color:
-                                  controller.charCount.value > 0
-                                      ? ColorApp.primary
-                                      : ColorApp.grey,
-                              size: SizeApp.h16,
-                            ),
-                          ),
+                          // ✅ Tombol send dengan validasi
+                          Obx(() {
+                            final isValid = controller.isReplyValid.value;
+                            final isSubmitting = controller.isSubmitting.value;
+
+                            return GestureDetector(
+                              onTap:
+                                  isValid && !isSubmitting
+                                      ? () => controller.submitReply(
+                                        postId: post.id ?? 0,
+                                      )
+                                      : null,
+                              child:
+                                  isSubmitting
+                                      ? SizedBox(
+                                        width: SizeApp.h16,
+                                        height: SizeApp.h16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                ColorApp.primary,
+                                              ),
+                                        ),
+                                      )
+                                      : Icon(
+                                        Icons.send,
+                                        color:
+                                            isValid
+                                                ? ColorApp.primary
+                                                : ColorApp.grey,
+                                        size: SizeApp.h16,
+                                      ),
+                            );
+                          }),
                         ],
                       ),
                     ),
@@ -153,44 +191,6 @@ class ReplyPostPageView extends GetView<ReplyPostPageController> {
                 ),
               ),
             ),
-            // Semua konten di bawah bisa scroll
-            // Expanded(
-            //   child: Obx(() {
-            //     if (controller.isLoading.value) {
-            //       return const Center(child: CircularProgressIndicator());
-            //     }
-
-            //     return ListView.builder(
-            //       physics: const AlwaysScrollableScrollPhysics(),
-            //       itemCount: controller.posts.length + 1,
-            //       itemBuilder: (context, index) {
-            //         if (index == 0) {
-            //           return PostField(
-            //             postController: postController,
-            //             controller: controller,
-            //           );
-            //         }
-
-            //         if (controller.posts.isEmpty && index == 1) {
-            //           return const Padding(
-            //             padding: EdgeInsets.all(20.0),
-            //             child: Center(child: Text("Belum ada postingan")),
-            //           );
-            //         }
-
-            //         final post = controller.posts[index - 1];
-
-            //         return UserPost(
-            //           post: post,
-            //           onTap:
-            //               () => controller.toggleLike(
-            //                 controller.posts[index - 1],
-            //               ),
-            //         );
-            //       },
-            //     );
-            //   }),
-            // ),
           ],
         ),
       ),
@@ -291,19 +291,6 @@ class PostReplied extends StatelessWidget {
                     ),
                   ),
                   Gap.w16,
-                  GestureDetector(
-                    onTap: () {
-                      print(
-                        "you reposted the post ${post.id} by ${post.username}",
-                      );
-                    },
-                    child: SvgPicture.asset(
-                      'assets/icons/repost.svg',
-                      width: SizeApp.w20,
-                      height: SizeApp.w20,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -337,47 +324,75 @@ class PostReplied extends StatelessWidget {
 }
 
 class AppbarReplies extends StatelessWidget {
-  const AppbarReplies({super.key});
+  final HomeController homeC;
+  final PostModel post;
+
+  const AppbarReplies({super.key, required this.post, required this.homeC});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: ColorApp.white,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: SizeApp.h12,
-          horizontal: SizeApp.w16,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () => Get.back(),
-              child: Icon(Icons.arrow_back, size: SizeApp.h24),
-            ),
-            Column(
-              children: [
-                Text(
-                  'Replies',
-                  style: TypographyApp.headline1.copyWith(
-                    fontSize: SizeApp.customHeight(15),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+      padding: EdgeInsets.symmetric(
+        vertical: SizeApp.h12,
+        horizontal: SizeApp.w16,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // ✅ back (size aman)
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: Icon(Icons.arrow_back, size: SizeApp.h24),
+            onPressed: () => Get.back(),
+          ),
 
-                Text(
-                  '12 Replies',
-                  style: TypographyApp.label.copyWith(
-                    fontSize: SizeApp.customHeight(10),
-                    fontWeight: FontWeight.w400,
-                    color: ColorApp.grey,
-                  ),
+          // ✅ tengah
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Comments',
+                style: TypographyApp.headline1.copyWith(
+                  fontSize: SizeApp.customHeight(15),
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
+              ),
+              Text(
+                '${post.commentCount} Comments',
+                style: TypographyApp.label.copyWith(
+                  fontSize: SizeApp.customHeight(10),
+                  fontWeight: FontWeight.w400,
+                  color: ColorApp.grey,
+                ),
+              ),
+            ],
+          ),
+
+          // ✅ report (size aman)
+          IconButton(
+            icon: Icon(
+              Icons.report_gmailerrorred_sharp,
+              size: SizeApp.h24,
+              color: ColorApp.primary,
             ),
-            Icon(Icons.more_horiz_outlined, size: SizeApp.h24),
-          ],
-        ),
+            onPressed: () {
+              Get.dialog(
+                ConfirmButtonDialog(
+                  title: 'Report Post',
+                  description: 'Are you sure you want to report this post?',
+                  buttonText: 'Report',
+                  onConfirm: () async {
+                    Get.back();
+                    await homeC.reportPost(post.id ?? 0);
+                  },
+                ),
+                barrierDismissible: true,
+              );
+            },
+          ),
+        ],
       ),
     );
   }

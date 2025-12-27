@@ -194,6 +194,7 @@ class EditProfilePageController extends GetxController {
 
       profileController.fetchProfile();
       Get.back();
+      Get.back();
     } catch (e) {
       Get.snackbar(
         'Error',
