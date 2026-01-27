@@ -62,21 +62,17 @@ class ExplorePageController extends GetxController {
       info: 'Terkenal dengan pantai, budaya Hindu, dan pura',
       color: Colors.pink,
     ),
-    IslandLocation(
-      name: 'NTT',
-      position: LatLng(-8.6573, 117.3616),
-      description: 'Lombok, Sumbawa, Flores, Komodo',
-      info: 'Terkenal dengan Komodo, pantai pink, dan Raja Ampat',
-      color: Colors.cyan,
-    ),
-    IslandLocation(
-      name: 'Maluku',
-      position: LatLng(-3.2385, 130.1453),
-      description: 'Kepulauan Rempah-rempah',
-      info: 'Penghasil cengkeh dan pala terbaik dunia',
-      color: Colors.teal,
-    ),
   ];
+
+  // Map untuk menyimpan URL WebAR sesuai pulau
+  final Map<String, String> webArUrls = {
+    'Sumatera': 'https://mywebar.com/pi/834389',
+    'Jawa': 'https://mywebar.com/pi/822004',
+    'Papua': 'https://mywebar.com/pi/837465',
+    'Bali': 'https://mywebar.com/pi/837534',
+    'Kalimantan': 'https://mywebar.com/pi/837488',
+    'Sulawesi': 'https://mywebar.com/pi/837508',
+  };
 
   List<Marker> buildMarkers() {
     final allIslands = [...islands, ...dynamic_islands];
@@ -183,7 +179,22 @@ class ExplorePageController extends GetxController {
   void clearSelected() => selectedIsland.value = '';
 
   Future<void> openWebAR(IslandLocation island) async {
-    final url = Uri.parse('https://mywebar.com/pi/822004');
+    // Ambil URL sesuai nama pulau
+    final urlString = webArUrls[island.name];
+
+    if (urlString == null) {
+      Get.snackbar(
+        'Tidak Tersedia',
+        'WebAR untuk ${island.name} belum tersedia',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange[700],
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(12),
+      );
+      return;
+    }
+
+    final url = Uri.parse(urlString);
 
     try {
       if (await canLaunchUrl(url)) {
