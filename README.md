@@ -1,6 +1,5 @@
 # XNusa: Explore Your Nusantara 🇮🇩
 
-![XNusa Banner](path/to/your/banner-image.png)
 **XNusa** adalah platform ekosistem digital kebudayaan dan pariwisata yang menggabungkan kecerdasan buatan (*Artificial Intelligence*) dan komputasi spasial (*Spatial Computing*) untuk menghadirkan pengalaman eksplorasi budaya Indonesia yang imersif, interaktif, dan inklusif.
 
 Proyek ini dikembangkan oleh tim **Troopers** dari Telkom University bekerja sama dengan BRIN (Badan Riset dan Inovasi Nasional).
